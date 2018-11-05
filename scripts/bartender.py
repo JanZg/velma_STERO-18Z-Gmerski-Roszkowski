@@ -43,7 +43,7 @@ from rcprg_ros_utils import exitError
  
 if __name__ == "__main__":
      # define some configurations
-     q_map_starting = {'torso_0_joint':0,
+     q_default_position = {'torso_0_joint':0,
          'right_arm_0_joint':-0.3,   'left_arm_0_joint':0.3,
          'right_arm_1_joint':-1.8,   'left_arm_1_joint':1.8,
          'right_arm_2_joint':1.25,   'left_arm_2_joint':-1.25,
@@ -51,15 +51,6 @@ if __name__ == "__main__":
          'right_arm_4_joint':0,      'left_arm_4_joint':0,
          'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
          'right_arm_6_joint':0,      'left_arm_6_joint':0 }
- 
-     q_map_1 = {'torso_0_joint':0.0,
-         'right_arm_0_joint':-0.3,   'left_arm_0_joint':0.3,
-         'right_arm_1_joint':-1.57,  'left_arm_1_joint':1.57,
-         'right_arm_2_joint':1.57,   'left_arm_2_joint':-1.57,
-         'right_arm_3_joint':1.57,   'left_arm_3_joint':-1.7,
-         'right_arm_4_joint':0.0,    'left_arm_4_joint':0.0,
-         'right_arm_5_joint':-1.57,  'left_arm_5_joint':1.57,
-         'right_arm_6_joint':0.0,    'left_arm_6_joint':0.0 }
  
      rospy.init_node('test_cimp_pose')
  
@@ -93,6 +84,86 @@ if __name__ == "__main__":
      # planning...
      print "Planner init ok"
  
+    if velma.enableMotors() != 0:
+         exitError(14)
+ 
+ 	def grabRight():
+ 	dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
+     print "Taking a hold"
+     velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
+     if velma.waitForHandRight() != 0:
+         exitError(8)
+     rospy.sleep(0.5)
+     if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
+    exitError(9)
+    
+    def grabLeft():
+ 	dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
+     print "Taking a hold"
+     velma.moveHandLeft(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
+     if velma.waitForLeftRight() != 0:
+         exitError(8)
+     rospy.sleep(0.5)
+     if not isHandConfigurationClose( velma.getHandLeftCurrentConfiguration(), dest_q):
+    exitError(9)
+    
+    def releaseRight():
+ 	 dest_q = [0,0,0,0]
+     print "Taking a hold"
+     velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
+     if velma.waitForHandRight() != 0:
+         exitError(8)
+     rospy.sleep(0.5)
+     if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
+    exitError(9)
+    
+    def releaseLeft():
+ 	 dest_q = [0,0,0,0]
+     print "Taking a hold"
+     velma.moveHandLeft(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
+     if velma.waitForLeftRight() != 0:
+         exitError(8)
+     rospy.sleep(0.5)
+     if not isHandConfigurationClose( velma.getHandLeftCurrentConfiguration(), dest_q):
+    exitError(9)
+ 	         
+    def locateObject(object):
+ 
+     objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu	
+     objectAngle=math.atan2(Object.p[1],Object.p[0])
+     return objectFrame, objectAngle
+     
+    def moveRight(x,y,z,theta):
+
+     print "Moving right wrist to pose defined in world frame..."
+     T_B_Trd = PyKDL.Frame(PyKDL.Rotation( 0.0 , 0.0 , theta), PyKDL.Vector( 0.9*x , 0.9*y , z+0.115 ))
+     if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
+         exitError(8)
+     if velma.waitForEffectorRight() != 0:
+         exitError(9)
+     rospy.sleep(0.5)
+     print "calculating difference between desiread and reached pose..."
+     T_B_T_diff = PyKDL.diff(T_B_Trd, velma.getTf("B", "Tr"), 1.0)
+     print T_B_T_diff
+     if T_B_T_diff.vel.Norm() > 0.05 or T_B_T_diff.rot.Norm() > 0.05:
+         exitError(10)
+
+    def moveLeft(x,y,z,theta):
+
+     print "Moving left wrist to pose defined in world frame..."
+     T_B_Trd = PyKDL.Frame(PyKDL.Rotation( 0.0 , 0.0 , theta), PyKDL.Vector( 0.9*x , 0.9*y , z+0.115 ))
+     if not velma.moveCartImpLeft([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
+         exitError(8)
+     if velma.waitForEffectorLeft() != 0:
+         exitError(9)
+     rospy.sleep(0.5)
+     print "calculating difference between desiread and reached pose..."
+     T_B_T_diff = PyKDL.diff(T_B_Trd, velma.getTf("B", "Tr"), 1.0)
+     print T_B_T_diff
+     if T_B_T_diff.vel.Norm() > 0.05 or T_B_T_diff.rot.Norm() > 0.05:
+         exitError(10)
+
+
      # define a function for frequently used routine in this test
      def planAndExecute(q_dest):
          print "Planning motion to the goal position using set of all joints..."
@@ -120,58 +191,41 @@ if __name__ == "__main__":
  
      planAndExecute(q_map_starting)
  
-     if velma.enableMotors() != 0:
-         exitError(14)
+     
+    def switchMode():
+        diag = velma.getCoreCsDiag()
+        if  diag.inStateJntImp():
+            print "Switch to jnt_imp mode (no trajectory)..."
+            velma.moveJointImpToCurrentPos(start_time=0.2)
+            error = velma.waitForJoint()
+            if error != 0:
+                print "The action should have ended without error, but the error code is", error
+                exitError(3)
  
-     print "Switch to jnt_imp mode (no trajectory)..."
-     velma.moveJointImpToCurrentPos(start_time=0.2)
-     error = velma.waitForJoint()
-     if error != 0:
-         print "The action should have ended without error, but the error code is", error
-         exitError(3)
+            rospy.sleep(0.5)
+            diag = velma.getCoreCsDiag()
+            if not diag.inStateJntImp():
+                print "The core_cs should be in jnt_imp state, but it is not"
+                exitError(3)
+        else: 
+            # get initial configuration
+            js_init = velma.getLastJointState()
  
-     rospy.sleep(0.5)
-     diag = velma.getCoreCsDiag()
-     if not diag.inStateJntImp():
-         print "The core_cs should be in jnt_imp state, but it is not"
-         exitError(3)
+            print "Switch to cart_imp mode (no trajectory)..."
+            if not velma.moveCartImpRightCurrentPos(start_time=0.2):
+                exitError(8)
+            if velma.waitForEffectorRight() != 0:
+                exitError(9)
  
-     # get initial configuration
-     js_init = velma.getLastJointState()
- 
-     print "Switch to cart_imp mode (no trajectory)..."
-     if not velma.moveCartImpRightCurrentPos(start_time=0.2):
-         exitError(8)
-     if velma.waitForEffectorRight() != 0:
-         exitError(9)
- 
-     rospy.sleep(0.5)
- 
-     diag = velma.getCoreCsDiag()
-     if not diag.inStateCartImp():
-         print "The core_cs should be in cart_imp state, but it is not"
-         exitError(3)
- 
-     T_B_Jar = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu	
-     x = T_B_Jar.p[0]#x
-     y = T_B_Jar.p[1]#y
-     z = T_B_Jar.p[2]#z
+            rospy.sleep(0.5)
+            diag = velma.getCoreCsDiag()
+            if not diag.inStateCartImp():
+                print "The core_cs should be in cart_imp state, but it is not"
+                exitError(3)
+         
+     
 
-     theta=math.atan2(y,x)
-
-     print "Moving right wrist to pose defined in world frame..."
-     T_B_Trd = PyKDL.Frame(PyKDL.Rotation( 0.0 , 0.0 , theta), PyKDL.Vector( 0.9*x , 0.9*y , z+0.115 ))
-     if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
-         exitError(8)
-     if velma.waitForEffectorRight() != 0:
-         exitError(9)
-     rospy.sleep(0.5)
-     print "calculating difference between desiread and reached pose..."
-     T_B_T_diff = PyKDL.diff(T_B_Trd, velma.getTf("B", "Tr"), 1.0)
-     print T_B_T_diff
-     if T_B_T_diff.vel.Norm() > 0.05 or T_B_T_diff.rot.Norm() > 0.05:
-         exitError(10)
-
+     
 
 
   
