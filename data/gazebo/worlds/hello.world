@@ -3357,7 +3357,7 @@
       </plugin>
       <pose frame=''>0 0 0 0 -0 0</pose>
     </model>
-    <model name='table'>
+    <model name='table1'>
       <static>1</static>
       <link name='link'>
         <collision name='surface'>
@@ -3522,11 +3522,11 @@
       </link>
       <pose frame=''>0.038829 -1.11064 0 0 -0 0</pose>
     </model>
-    <model name='beer'>
+    <model name='object'>
       <link name='link'>
         <pose frame=''>0 0 0.115 0 -0 0</pose>
         <inertial>
-          <mass>0.39</mass>
+          <mass>0.2</mass>
           <inertia>
             <ixx>0.00058</ixx>
             <ixy>0</ixy>
@@ -3573,7 +3573,7 @@
       </link>
       <pose frame=''>0.286187 -1.2253 0 0 -0 0</pose>
     </model>
-    <model name='table_0'>
+    <model name='table2'>
       <static>1</static>
       <link name='link'>
         <collision name='surface'>
@@ -3743,7 +3743,7 @@
       <real_time>0 0</real_time>
       <wall_time>1541408355 757810854</wall_time>
       <iterations>76767</iterations>
-      <model name='beer'>
+      <model name='object'>
         <pose frame=''>-0.320617 -0.862807 1.015 2e-06 -2e-06 -0.000818</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -3763,7 +3763,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='table'>
+      <model name='table1'>
         <pose frame=''>0.038829 -1.11064 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -3773,7 +3773,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='table_0'>
+      <model name='table2'>
         <pose frame=''>1.02702 0.591095 0 0 -0 1.59992</pose>
         <scale>1 1 1</scale>
         <link name='link'>
