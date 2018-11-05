@@ -43,59 +43,62 @@ from rcprg_ros_utils import exitError
  
 if __name__ == "__main__":
      # define some configurations
-     q_default_position = {'torso_0_joint':0,
-         'right_arm_0_joint':-0.3,   'left_arm_0_joint':0.3,
-         'right_arm_1_joint':-1.8,   'left_arm_1_joint':1.8,
-         'right_arm_2_joint':1.25,   'left_arm_2_joint':-1.25,
-         'right_arm_3_joint':0.85,   'left_arm_3_joint':-0.85,
-         'right_arm_4_joint':0,      'left_arm_4_joint':0,
-         'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
-         'right_arm_6_joint':0,      'left_arm_6_joint':0 }
+     def initAll():
+     # zweryfikowac z gazebo
+          h_stolu=0.53
+          h_puszki=0.23
+          a_stolu=1.5
+          b_stolu=0.8        
+          q_default_position = {'torso_0_joint':0,
+              'right_arm_0_joint':-0.3,   'left_arm_0_joint':0.3,
+              'right_arm_1_joint':-1.8,   'left_arm_1_joint':1.8,
+              'right_arm_2_joint':1.25,   'left_arm_2_joint':-1.25,
+              'right_arm_3_joint':0.85,   'left_arm_3_joint':-0.85,
+              'right_arm_4_joint':0,      'left_arm_4_joint':0,
+              'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
+              'right_arm_6_joint':0,      'left_arm_6_joint':0 }
  
-     rospy.init_node('test_cimp_pose')
+          rospy.init_node('test_cimp_pose')
  
-     rospy.sleep(0.5)
+          rospy.sleep(0.5)
  
-     print "This test/tutorial executes simple motions"\
-         " in Cartesian impedance mode.\n"
+          print "Running python interface for Velma..."
+          velma = VelmaInterface()
+          print "Waiting for VelmaInterface initialization..."
+          if not velma.waitForInit(timeout_s=10.0):
+              print "Could not initialize VelmaInterface\n"
+              exitError(1)
+          print "Initialization ok!\n"
  
-     print "Running python interface for Velma..."
-     velma = VelmaInterface()
-     print "Waiting for VelmaInterface initialization..."
-     if not velma.waitForInit(timeout_s=10.0):
-         print "Could not initialize VelmaInterface\n"
-         exitError(1)
-     print "Initialization ok!\n"
+          diag = velma.getCoreCsDiag()
+          if not diag.motorsReady():
+              print "Motors must be homed and ready to use for this test."
+              exitError(1)
  
-     diag = velma.getCoreCsDiag()
-     if not diag.motorsReady():
-         print "Motors must be homed and ready to use for this test."
-         exitError(1)
+          print "waiting for Planner init..."
+          p = Planner(velma.maxJointTrajLen())
+          if not p.waitForInit():
+              print "could not initialize PLanner"
+              exitError(2)
+          oml = OctomapListener("/octomap_binary")
+          rospy.sleep(1.0)
+          octomap = oml.getOctomap(timeout_s=5.0)
+          p.processWorld(octomap)
+          # planning...
+          print "Planner init ok"
  
-     print "waiting for Planner init..."
-     p = Planner(velma.maxJointTrajLen())
-     if not p.waitForInit():
-         print "could not initialize PLanner"
-         exitError(2)
-     oml = OctomapListener("/octomap_binary")
-     rospy.sleep(1.0)
-     octomap = oml.getOctomap(timeout_s=5.0)
-     p.processWorld(octomap)
-     # planning...
-     print "Planner init ok"
+         if velma.enableMotors() != 0:
+              exitError(14)
  
-    if velma.enableMotors() != 0:
-         exitError(14)
- 
- 	def grabRight():
- 	dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
-     print "Taking a hold"
-     velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
-     if velma.waitForHandRight() != 0:
-         exitError(8)
-     rospy.sleep(0.5)
-     if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
-    exitError(9)
+ 	   def grabRight():
+ 	     dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
+       print "Taking a hold"
+       velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
+       if velma.waitForHandRight() != 0:
+           exitError(8)
+       rospy.sleep(0.5)
+       if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
+           exitError(9)
     
     def grabLeft():
  	dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
