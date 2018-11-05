@@ -99,6 +99,7 @@ if __name__ == "__main__":
      rospy.sleep(0.5)
      if not isHeadConfigurationClose( velma.getHeadCurrentConfiguration(), q_dest, 0.1 ):
          exitError(5)
+
  
      print "moving head to position: left"
      q_dest = (1.0, -0.5)
@@ -108,6 +109,15 @@ if __name__ == "__main__":
      rospy.sleep(0.5)
      if not isHeadConfigurationClose( velma.getHeadCurrentConfiguration(), q_dest, 0.1 ):
          exitError(7)
+
+     print "moving head to position: right down"
+     q_dest = (-1.0, 1.3)
+     velma.moveHead(q_dest, 5.0, start_time=0.5)
+     if velma.waitForHead() != 0:
+         exitError(8)
+     rospy.sleep(0.5)
+     if not isHeadConfigurationClose( velma.getHeadCurrentConfiguration(), q_dest, 0.1 ):
+         exitError(9)
  
      print "moving head to position: left down"
      q_dest = (1.0, 1.3)
@@ -117,15 +127,6 @@ if __name__ == "__main__":
      rospy.sleep(0.5)
      if not isHeadConfigurationClose( velma.getHeadCurrentConfiguration(), q_dest, 0.1 ):
          exitError(7)
- 
-     print "moving head to position: right down"
-     q_dest = (-1.0, 1.3)
-     velma.moveHead(q_dest, 5.0, start_time=0.5)
-     if velma.waitForHead() != 0:
-         exitError(8)
-     rospy.sleep(0.5)
-     if not isHeadConfigurationClose( velma.getHeadCurrentConfiguration(), q_dest, 0.1 ):
-         exitError(9)
  
      print "moving head to position: right"
      q_dest = (-1.0, -0.5)
