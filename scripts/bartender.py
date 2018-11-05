@@ -189,12 +189,10 @@ if __name__ == "__main__":
          if not isConfigurationClose(q_dest, js[1]):
              exitError(6)
  
-     planAndExecute(q_map_starting)
- 
-     
+        
     def switchMode():
         diag = velma.getCoreCsDiag()
-        if  diag.inStateJntImp():
+        if  diag.inStateCartImp():
             print "Switch to jnt_imp mode (no trajectory)..."
             velma.moveJointImpToCurrentPos(start_time=0.2)
             error = velma.waitForJoint()
@@ -222,17 +220,6 @@ if __name__ == "__main__":
             if not diag.inStateCartImp():
                 print "The core_cs should be in cart_imp state, but it is not"
                 exitError(3)
-         
-     
-
-     
-
-
-  
-
-
- 
-     planAndExecute(q_map_starting)
- 
+          
 
 
