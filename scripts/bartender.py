@@ -221,6 +221,21 @@ if __name__ == "__main__":
             if not diag.inStateCartImp():
                 print "The core_cs should be in cart_imp state, but it is not"
                 exitError(3)
-          
+       
+    def findCenter(object)
+        #szukanie srodka stolu
+        objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu
+        alfa=objectFrame.m[2] #kat obrotu stolu wokol polozenia rownowagi
+        beta=atan2(b_stolu,a_stolu)   #kat miedzy przekatna stolu a jego dlugoscia
+        theta=alfa+beta              #kat miedzy polozeniem rownowagi a przekatna stolu
+        d=math.sqrt(math.pow(a_stolu,2)+math.pow(b_stolu,2))  #przekatna stolu
+        w1=(objectFrame.p[0],objectFrame.p[1],objectFrame.p[2])
+        w2=(d*math.sin(theta),d*math.cos(theta),objectFrame.p[2])
+        w=0.5*(w1+w2)
+        return w
+        
+        
+      
+        
 
 
