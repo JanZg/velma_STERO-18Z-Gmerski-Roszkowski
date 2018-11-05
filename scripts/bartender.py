@@ -59,9 +59,7 @@ if __name__ == "__main__":
             'right_arm_6_joint':0,      'left_arm_6_joint':0 }
  
         rospy.init_node('test_cimp_pose')
- 
         rospy.sleep(0.5)
- 
         print "Running python interface for Velma..."
         velma = VelmaInterface()
         print "Waiting for VelmaInterface initialization..."
