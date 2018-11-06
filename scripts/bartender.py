@@ -36,6 +36,7 @@
  
 import roslib; roslib.load_manifest('velma_task_cs_ros_interface')
 import rospy
+import PyKDL
 
 from velma_common import *
 from rcprg_planner import *
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     def moveRight(x,y,z,theta):
 
         print "Moving right wrist to pose defined in world frame..."
-        T_B_Trd = PyKDL.Frame(PyKDL.Rotation( 0.0 , 0.0 , theta), PyKDL.Vector( 0.9*x , 0.9*y , z+0.115 ))
+        T_B_Trd = PyKDL.Frame(PyKDL.Rotation( 0.0 , 0.0 , theta), PyKDL.Vector( x , y , z ))
         if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
             exitError(8)
         if velma.waitForEffectorRight() != 0:
@@ -221,8 +222,38 @@ if __name__ == "__main__":
             if not diag.inStateCartImp():
                 print "The core_cs should be in cart_imp state, but it is not"
                 exitError(3)
+    def modeImp()
+            print "Switch to jnt_imp mode (no trajectory)..."
+            velma.moveJointImpToCurrentPos(start_time=0.2)
+            error = velma.waitForJoint()
+            if error != 0:
+                print "The action should have ended without error, but the error code is", error
+                exitError(3)
+ 
+            rospy.sleep(0.5)
+            diag = velma.getCoreCsDiag()
+            if not diag.inStateJntImp():
+                print "The core_cs should be in jnt_imp state, but it is not"
+                exitError(3)
+
+
+    def modeCart()
+        js_init = velma.getLastJointState()
+ 
+        print "Switch to cart_imp mode (no trajectory)..."
+        if not velma.moveCartImpRightCurrentPos(start_time=0.2):
+            exitError(8)
+        if velma.waitForEffectorRight() != 0:
+            exitError(9)
+ 
+        rospy.sleep(0.5)
+        diag = velma.getCoreCsDiag()
+        if not diag.inStateCartImp():
+            print "The core_cs should be in cart_imp state, but it is not"
+            exitError(3)
+        
        
-    def findVertices(object)
+    def findDest(object)
         #szukanie wierzcholkow stolu
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu
         alfa=objectFrame.m[2] #kat obrotu stolu wokol polozenia rownowagi
@@ -234,12 +265,33 @@ if __name__ == "__main__":
         w3=w_sr-(0.5*d*math.sin(alfa+beta),0.5*d.math*cos(alfa+beta),0)
         w2=w_sr+(0.5*d*math.cos(alfa-beta),0.5*d.math.sin(alfa-beta),0)
         w4=w_sr-(0.5*d*math.cos(alfa-beta),0.5*d.math.sin(alfa-beta),0)
+
+        wd1=sqrt(w1[0]*w1[0]+w1[1]*w1[1])
+        wd2=sqrt(w1[0]*w2[0]+w2[1]*w2[1])
+        wd3=sqrt(w1[0]*w3[0]+w3[1]*w3[1])
+        wd4=sqrt(w4[0]*w4[0]+w4[1]*w4[1])
         
-        return (w1,w2,w3,w4)
+        if(wd1>wd2) 
+             w1=w2
+             wd1=wd2
+        if(wd1>wd3)
+             w1=w3
+             wd1=wd3
+        if(wd1>wd4)
+             w1=w4
+             wd1=wd4
+
+        w1=0.8*w1+0.2*w_sr
+        return (w1)
 
         
         
       
-        
+    initAll()
+    modeCart()
+    (beer_frame,beer_angle)=locateObject(object)
+    
+    moveRight(0.9*beer_frame.p[0],0.9*beer_frame.p[1],h_puszki+beer_frame.p[2],beer_angle)
+    dest=findDest(table2)
 
 
