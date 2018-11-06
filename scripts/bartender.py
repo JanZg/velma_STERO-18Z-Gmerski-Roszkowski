@@ -323,7 +323,7 @@ if __name__ == "__main__":
     modeCart()
     
     dest=findDest(table2)
-    moveRight(dest[0],dest[1],dest[2]+0.05,dest[3])
+    moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3])
     
     modeImp()
     releaseRight()
