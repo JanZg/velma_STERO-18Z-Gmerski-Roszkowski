@@ -247,7 +247,7 @@
       </link>
       <pose frame=''>0.038829 -1.11064 0 0 -0 0</pose>
     </model>
-    <model name='object'>
+    <model name='beer'>
       <link name='link'>
         <pose frame=''>0 0 0.115 0 -0 0</pose>
         <inertial>
@@ -468,7 +468,7 @@
       <real_time>0 0</real_time>
       <wall_time>1541408355 757810854</wall_time>
       <iterations>76767</iterations>
-      <model name='object'>
+      <model name='beer'>
         <pose frame=''>-0.320617 -0.862807 1.015 2e-06 -2e-06 -0.000818</pose>
         <scale>1 1 1</scale>
         <link name='link'>

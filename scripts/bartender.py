@@ -40,15 +40,15 @@ import PyKDL
 from velma_common import *
 from rcprg_planner import *
 from rcprg_ros_utils import exitError
- 
+h_stolu=0.53
+h_puszki=0.23
+a_stolu=1.5
+b_stolu=0.8  
 if __name__ == "__main__":
     # define some configurations
     def initAll():
     # zweryfikowac z gazebo
-        h_stolu=0.53
-        h_puszki=0.23
-        a_stolu=1.5
-        b_stolu=0.8        
+      
         q_default_position = {'torso_0_joint':0,
             'right_arm_0_joint':-0.3,   'left_arm_0_joint':0.3,
             'right_arm_1_joint':-1.8,   'left_arm_1_joint':1.8,
@@ -58,15 +58,8 @@ if __name__ == "__main__":
             'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
             'right_arm_6_joint':0,      'left_arm_6_joint':0 }
  
-        rospy.init_node('test_cimp_pose')
-        rospy.sleep(0.5)
-        print "Running python interface for Velma..."
-        velma = VelmaInterface()
-        print "Waiting for VelmaInterface initialization..."
-        if not velma.waitForInit(timeout_s=10.0):
-            print "Could not initialize VelmaInterface\n"
-            exitError(1)
-        print "Initialization ok!\n"
+
+
 
 	print "Motors must be enabled every time after the robot enters safe state."
      	print "If the motors are already enabled, enabling them has no effect."
@@ -138,13 +131,13 @@ if __name__ == "__main__":
     def locateObject(object):
  
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu	
-        objectAngle=math.atan2(Object.p[1],Object.p[0])
+        objectAngle=math.atan2(objectFrame.p[1],objectFrame.p[0])
         return objectFrame, objectAngle
      
     def moveRight(x,y,z,theta):
 
         print "Moving right wrist to pose defined in world frame..."
-        T_B_Trd = PyKDL.Frame(PyKDL.Rotation( 0.0 , 0.0 , theta), PyKDL.Vector( x , y , z ))
+        T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( x , y , z ))
         if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
             exitError(8)
         if velma.waitForEffectorRight() != 0:
@@ -159,7 +152,7 @@ if __name__ == "__main__":
     def moveLeft(x,y,z,theta):
 
         print "Moving left wrist to pose defined in world frame..."
-        T_B_Trd = PyKDL.Frame(PyKDL.Rotation( 0.0 , 0.0 , theta), PyKDL.Vector( 0.9*x , 0.9*y , z+0.115 ))
+        T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( 0.9*x , 0.9*y , z+0.115 ))
         if not velma.moveCartImpLeft([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
             exitError(8)
         if velma.waitForEffectorLeft() != 0:
@@ -302,30 +295,40 @@ if __name__ == "__main__":
     #Step 8: podnosimy chwytak nad puszke, aby jej nie potracic
     #Step 9: wracamy do pozycji domyslnej
     
+    rospy.init_node('test_cimp_pose')
+    rospy.sleep(0.5)
+    print "Running python interface for Velma..."
+    velma = VelmaInterface()
+    print "Waiting for VelmaInterface initialization..."
+    if not velma.waitForInit(timeout_s=10.0):
+        print "Could not initialize VelmaInterface\n"
+        exitError(1)
+    print "Initialization ok!\n"
     initAll()
+    
     modeImp()
     grabRight()
     modeCart()
     
-    (beer_frame,beer_angle)=locateObject(object)
+    (beerFrame,beerAngle)=locateObject("beer")
     
-    moveRight(0.9*beer_frame.p[0],0.9*beer_frame.p[1],0.5*h_puszki+beer_frame.p[2],beer_angle)
+    moveRight(0.9*beerFrame.p[0],0.9*beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
     modeImp()
     releaseRight()
     modeCart()
     
-    moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2],beer_angle)
+    moveRight(beerFrame.p[0],beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
     modeImp()
     grabRight()
     modeCart()
     
     dest=findDest(table2)
-    moveRight(dest+(0,0,0,0.05))
+    moveRight(dest[0],dest[1],dest[2]+0.05,dest[3])
     
     modeImp()
     releaseRight()
     
-    (beer_frame,beer_angle)=locateObject(beer)
+    (beer_frame,beer_angle)=locateObject("beer")
     modeCart()
     moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
     
