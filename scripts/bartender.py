@@ -282,16 +282,49 @@ if __name__ == "__main__":
              wd1=wd4
 
         w1=0.8*w1+0.2*w_sr
-        return (w1)
+        th=atan2(w1[1],w1[0])
+        return (w1[0],w1[1],w1[2],th)
 
         
-        
-      
+    #Step 1: zaciskamy palce
+    #Step 2: zblizamy sie do puszki
+    #Step 3: otwieramy palce
+    #Step 4: podjezdzamy pod puszke
+    #Step 5: zaciskamy palce(chwytamy)
+    #Step 6: jedziemy nad punkt docelowy
+    #Step 7: upuszczamy puszke
+    #Step 8: podnosimy chwytak nad puszke, aby jej nie potracic
+    #Step 9: wracamy do pozycji domyslnej
+    
     initAll()
+    modeImp()
+    grabRight()
     modeCart()
+    
     (beer_frame,beer_angle)=locateObject(object)
     
-    moveRight(0.9*beer_frame.p[0],0.9*beer_frame.p[1],h_puszki+beer_frame.p[2],beer_angle)
+    moveRight(0.9*beer_frame.p[0],0.9*beer_frame.p[1],0.5*h_puszki+beer_frame.p[2],beer_angle)
+    modeImp()
+    releaseRight()
+    modeCart()
+    
+    moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2],beer_angle)
+    modeImp()
+    grabRight()
+    modeCart()
+    
     dest=findDest(table2)
+    moveRight(dest+(0,0,0,0.05)
+    
+    modeImp()
+    releaseRight()
+    
+    (beer_frame,beer_angle)=locateObject(beer)
+    modeCart()
+    moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
+    
+    modeImp()
+    plan_and_execute(q_default_position)
+              
 
 
