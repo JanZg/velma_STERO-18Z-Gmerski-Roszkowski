@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
  
  
@@ -68,17 +67,24 @@ if __name__ == "__main__":
             print "Could not initialize VelmaInterface\n"
             exitError(1)
         print "Initialization ok!\n"
+
+	print "Motors must be enabled every time after the robot enters safe state."
+     	print "If the motors are already enabled, enabling them has no effect."
+     	print "Enabling motors..."
+     	if velma.enableMotors() != 0:
+		exitError(2)
+
+	print "waiting for Planner init..."
+        p = Planner(velma.maxJointTrajLen())
+        if not p.waitForInit():
+            print "could not initialize PLanner"
+            exitError(2)
  
         diag = velma.getCoreCsDiag()
         if not diag.motorsReady():
             print "Motors must be homed and ready to use for this test."
             exitError(1)
  
-        print "waiting for Planner init..."
-        p = Planner(velma.maxJointTrajLen())
-        if not p.waitForInit():
-            print "could not initialize PLanner"
-            exitError(2)
         oml = OctomapListener("/octomap_binary")
         rospy.sleep(1.0)
         octomap = oml.getOctomap(timeout_s=5.0)
@@ -222,7 +228,7 @@ if __name__ == "__main__":
             if not diag.inStateCartImp():
                 print "The core_cs should be in cart_imp state, but it is not"
                 exitError(3)
-    def modeImp()
+    def modeImp():
             print "Switch to jnt_imp mode (no trajectory)..."
             velma.moveJointImpToCurrentPos(start_time=0.2)
             error = velma.waitForJoint()
@@ -237,7 +243,7 @@ if __name__ == "__main__":
                 exitError(3)
 
 
-    def modeCart()
+    def modeCart():
         js_init = velma.getLastJointState()
  
         print "Switch to cart_imp mode (no trajectory)..."
@@ -253,7 +259,7 @@ if __name__ == "__main__":
             exitError(3)
         
        
-    def findDest(object)
+    def findDest(object):
         #szukanie wierzcholkow stolu
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu
         alfa=objectFrame.m[2] #kat obrotu stolu wokol polozenia rownowagi
@@ -271,13 +277,13 @@ if __name__ == "__main__":
         wd3=sqrt(w1[0]*w3[0]+w3[1]*w3[1])
         wd4=sqrt(w4[0]*w4[0]+w4[1]*w4[1])
         
-        if(wd1>wd2) 
+        if(wd1>wd2): 
              w1=w2
              wd1=wd2
-        if(wd1>wd3)
+        if(wd1>wd3):
              w1=w3
              wd1=wd3
-        if(wd1>wd4)
+        if(wd1>wd4):
              w1=w4
              wd1=wd4
 
@@ -314,7 +320,7 @@ if __name__ == "__main__":
     modeCart()
     
     dest=findDest(table2)
-    moveRight(dest+(0,0,0,0.05)
+    moveRight(dest+(0,0,0,0.05))
     
     modeImp()
     releaseRight()
