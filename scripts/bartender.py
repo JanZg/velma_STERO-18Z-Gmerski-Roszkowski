@@ -64,7 +64,7 @@ q_default_position = {'torso_0_joint':0,
         'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
         'right_arm_6_joint':0,      'left_arm_6_joint':0 }
 
-#obrót korpusu i podniesienie chwytaka
+#obrot korpusu i podniesienie chwytaka
 def highFive(torso_angle):
 		if(torso_angle>1.56):
 			 torso_angle=1.56
@@ -155,88 +155,78 @@ def planAndExecute(q_dest):
         js = velma.getLastJointState()
         if not isConfigurationClose(q_dest, js[1]):
             exitError(6)
-#przełączanie trybów
+#przelaczanie trybow
 def modeImp():
-		print "Switch to jnt_imp mode (no trajectory)..."
-		velma.moveJointImpToCurrentPos(start_time=0.2)
-		error = velma.waitForJoint()
-		if error != 0:
-			print "The action should have ended without error, but the error code is", error
-			exitError(3)
+    print "Switch to jnt_imp mode (no trajectory)..."
+    velma.moveJointImpToCurrentPos(start_time=0.2)
+    error = velma.waitForJoint()
+    if error != 0:
+	print "The action should have ended without error, but the error code is", error
+	exitError(3)
  
-		rospy.sleep(0.5)
-		diag = velma.getCoreCsDiag()
-		if not diag.inStateJntImp():
-			print "The core_cs should be in jnt_imp state, but it is not"
-			exitError(3)
+    rospy.sleep(0.5)
+    diag = velma.getCoreCsDiag()
+    if not diag.inStateJntImp():
+        print "The core_cs should be in jnt_imp state, but it is not"
+        exitError(3)
 
 
 def modeCart():
-		print "Switch to cart_imp mode (no trajectory)..."
-		if not velma.moveCartImpRightCurrentPos(start_time=0.2):
-			exitError(8)
-		if velma.waitForEffectorRight() != 0:
-			exitError(9)
-		rospy.sleep(0.5)
-		diag = velma.getCoreCsDiag()
-		if not diag.inStateCartImp():
-			print "The core_cs should be in cart_imp state, but it is not"
-			exitError(3)
+    print "Switch to cart_imp mode (no trajectory)..."
+    if not velma.moveCartImpRightCurrentPos(start_time=0.2):
+	exitError(8)
+    if velma.waitForEffectorRight() != 0:
+	exitError(9)
+    rospy.sleep(0.5)
+    diag = velma.getCoreCsDiag()
+    if not diag.inStateCartImp():
+	print "The core_cs should be in cart_imp state, but it is not"
+	exitError(3)
 
 
 def findDest(object):
-        #szukanie wierzcholkow stolu i wybór punktu upuszczenia obiektu
-        objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu
-	objectAngle=objectFrame.M
-        (a,b,alfa)=objectAngle.GetRPY() #kat obrotu stolu wokol polozenia rownowagi
-	alfa=0.785-alfa
-        beta=math.atan2(b_stolu,a_stolu)   #kat miedzy przekatna stolu a jego dlugoscia
-        d=math.sqrt(math.pow(a_stolu,2)+math.pow(b_stolu,2))  #przekatna stolu
+        #szukanie wierzcholkow stolu i wybor punktu upuszczenia obiektu
+    objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu
+    objectAngle=objectFrame.M
+    (a,b,alfa)=objectAngle.GetRPY() #kat obrotu stolu wokol polozenia rownowagi
+    alfa=0.785-alfa
+    beta=math.atan2(b_stolu,a_stolu)   #kat miedzy przekatna stolu a jego dlugoscia
+    d=math.sqrt(math.pow(a_stolu,2)+math.pow(b_stolu,2))  #przekatna stolu
         
-    #    w_sr=(objectFrame.p[0],objectFrame.p[1],objectFrame.p[2])
-     #   w1=w_sr+(0.5*d*math.sin(alfa+beta),0.5*d*math.cos(alfa+beta),0)
-    #    w3=w_sr+(-0.5*d*math.sin(alfa+beta),-0.5*d*math.cos(alfa+beta),0)
-    #    w2=w_sr+(0.5*d*math.cos(alfa-beta),0.5*d*math.sin(alfa-beta),0)
-    #    w4=w_sr+(-0.5*d*math.cos(alfa-beta),-0.5*d*math.sin(alfa-beta),0)
 
-        w_sr=(objectFrame.p[0],objectFrame.p[1],objectFrame.p[2])
-        w1=(w_sr[0]+0.5*d*math.sin(alfa+beta),w_sr[1]+0.5*d*math.cos(alfa+beta),w_sr[2])
-        w3=(w_sr[0]-0.5*d*math.sin(alfa+beta),w_sr[1]-0.5*d*math.cos(alfa+beta),w_sr[2])
-        w2=(w_sr[0]-0.5*d*math.cos(alfa-beta),w_sr[1]+0.5*d*math.sin(alfa-beta),w_sr[2])
-        w4=(w_sr[0]+0.5*d*math.cos(alfa-beta),w_sr[1]-0.5*d*math.sin(alfa-beta),w_sr[2])
+
+    w_sr=(objectFrame.p[0],objectFrame.p[1],objectFrame.p[2])
+    w1=(w_sr[0]+0.5*d*math.sin(alfa+beta),w_sr[1]+0.5*d*math.cos(alfa+beta),w_sr[2])
+    w3=(w_sr[0]-0.5*d*math.sin(alfa+beta),w_sr[1]-0.5*d*math.cos(alfa+beta),w_sr[2])
+    w2=(w_sr[0]-0.5*d*math.cos(alfa-beta),w_sr[1]+0.5*d*math.sin(alfa-beta),w_sr[2])
+    w4=(w_sr[0]+0.5*d*math.cos(alfa-beta),w_sr[1]-0.5*d*math.sin(alfa-beta),w_sr[2])
 	
-        wd1=math.sqrt(w1[0]*w1[0]+w1[1]*w1[1])
-        wd2=math.sqrt(w2[0]*w2[0]+w2[1]*w2[1])
-        wd3=math.sqrt(w3[0]*w3[0]+w3[1]*w3[1])
-        wd4=math.sqrt(w4[0]*w4[0]+w4[1]*w4[1])
+    wd1=math.sqrt(w1[0]*w1[0]+w1[1]*w1[1])
+    wd2=math.sqrt(w2[0]*w2[0]+w2[1]*w2[1])
+    wd3=math.sqrt(w3[0]*w3[0]+w3[1]*w3[1])
+    wd4=math.sqrt(w4[0]*w4[0]+w4[1]*w4[1])
         
-	#Sprawdzamy ktory wierzcholek stolu jest najblizej velmy - w jego poblizu bedziemy stawiac puszke
-        if(wd1>wd2): 
-             w1=w2
-             wd1=wd2
-        if(wd1>wd3):
-             w1=w3
-             wd1=wd3
-        if(wd1>wd4):
-             w1=w4
-             wd1=wd4
-	w1=(0.9*w1[0]+0.1*w_sr[0],0.9*w1[1]+0.1*w_sr[1],w1[2])
-	print "Coordinates to drop:", w1[0], w1[1], "\n"
-        th=math.atan2(w1[1],w1[0])
-        return (w1[0],w1[1],w1[2],th)
+#Sprawdzamy ktory wierzcholek stolu jest najblizej velmy - w jego poblizu bedziemy stawiac puszke
+    if(wd1>wd2): 
+        w1=w2
+        wd1=wd2
+    if(wd1>wd3):
+        w1=w3
+        wd1=wd3
+    if(wd1>wd4):
+        w1=w4
+        wd1=wd4
+    w1=(0.7*w1[0]+0.3*w_sr[0],0.7*w1[1]+0.3*w_sr[1],w1[2])
+    print "Coordinates to drop:", w1[0], w1[1], "\n"
+    th=math.atan2(w1[1],w1[0])
+    return (w1[0],w1[1],w1[2],th)
 
 if __name__ == "__main__":
-    # define some configurations
+    
         
-    #Step 1: zaciskamy palce
-    #Step 2: zblizamy sie do puszki
-    #Step 3: otwieramy palce
-    #Step 4: podjezdzamy pod puszke
-    #Step 5: zaciskamy palce(chwytamy)
-    #Step 6: jedziemy nad punkt docelowy
-    #Step 7: upuszczamy puszke
-    #Step 8: podnosimy chwytak nad puszke, aby jej nie potracic
-    #Step 9: wracamy do pozycji domyslnej
+
+
+    # define some configurations
     rospy.init_node('test_cimp_pose')
     rospy.sleep(0.5)
     print "Running python interface for Velma..."
@@ -255,7 +245,7 @@ if __name__ == "__main__":
     print "waiting for Planner init..."
     p = Planner(velma.maxJointTrajLen())
     if not p.waitForInit():
-        print "could not initialize PLanner"
+        print "could not initialize Planner"
         exitError(2)
  
     diag = velma.getCoreCsDiag()
@@ -270,38 +260,38 @@ if __name__ == "__main__":
     # planning...
     print "Planner init ok"
 
-#chwyć - trudniej o kolizję
-grabRight()
+#chwyc - trudniej o kolizje
+    grabRight()
 #gdzie jest piwo
-(beerFrame,beerAngle)=locateObject("beer")
-#ręka do góry i obróć się w kierunku piwa (chwytamy prawą, więc trochę mocniej)
-highFive(beerAngle+0.15)
-#zwolnij chwyt i szykuj się do złapania piwa
-releaseRight() 
-#ustaw się bliżej i na dobrej osi
-moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
-#podjedź pod puszkę
-moveRight(beerFrame.p[0]-0.25*math.cos(beerAngle),beerFrame.p[1]-0.25*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
-grabRight()
-#powrót
-moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
-highFive(beerAngle+0.15)
-#znajdź stolik
-dest=findDest("table2")
+    (beerFrame,beerAngle)=locateObject("beer")
+#reka do gory i obroc sie w kierunku piwa (chwytamy prawa, wiec trochę mocniej)
+    highFive(beerAngle+0.15)
+#zwolnij chwyt i szykuj sie do zlapania piwa
+    releaseRight() 
+#ustaw sie blizej i na dobrej osi
+    moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
+#podjedz pod puszke
+    moveRight(beerFrame.p[0]-0.25*math.cos(beerAngle),beerFrame.p[1]-0.25*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
+    grabRight()
+#powrot
+    moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
+    highFive(beerAngle+0.15)
+#znajdz stolik
+    dest=findDest("table2")
 #nadgarstek nad stolik
-highFive(dest[3]+0.15)
-#ustaw się dokładnie nad punktem zrzutu
-moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3])
+    highFive(dest[3]+0.15)
+#ustaw sie dokładnie nad punktem zrzutu 
+    moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3]+0.15)
 #zrzut
-releaseRight()
+    releaseRight()
     
-(beer_frame,beer_angle)=locateObject("beer")
-moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
-#chwyć - trudniej o kolizję
-grabRight()
-#wróc do pozycji domyślnej
-print "Assuming resting position"
-planAndExecute(q_default_position)
+    (beer_frame,beer_angle)=locateObject("beer")
+    moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
+#chwyc - trudniej o kolizje
+    grabRight()
+#wroc do pozycji domyslnej
+    print "Assuming resting position"
+    planAndExecute(q_default_position)
               
 
 
