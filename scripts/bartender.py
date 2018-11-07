@@ -64,6 +64,7 @@ q_default_position = {'torso_0_joint':0,
         'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
         'right_arm_6_joint':0,      'left_arm_6_joint':0 }
 
+#obrót korpusu i podniesienie chwytaka
 def highFive(torso_angle):
 		if(torso_angle>1.56):
 			 torso_angle=1.56
@@ -80,7 +81,7 @@ def highFive(torso_angle):
 		print "Spinning and going up"
 		planAndExecute(q_map_to_spin)
 
-      
+#chwyt chwytakeiem (duh)     
 def grabRight():
 	modeImp()
         dest_q = [70.0/180.0*math.pi,70.0/180.0*math.pi,70.0/180.0*math.pi,0]
@@ -95,7 +96,7 @@ def grabRight():
 		moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
 		planAndExecute(q_default_position)
         	exitError(9)
-    
+#zwolnienie chwytu
 def releaseRight():
 	modeImp()
         dest_q = [0,0,0,0]
@@ -106,14 +107,15 @@ def releaseRight():
         rospy.sleep(0.5)
         if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
             exitError(9)
- 	         
+	         
 def locateObject(object):
  
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu	
         objectAngle=math.atan2(objectFrame.p[1],objectFrame.p[0])
 	print "Coordinates of beer:", objectFrame.p[0], objectFrame.p[1], "\n"
         return objectFrame, objectAngle
-     
+
+#ruch prawego nadgarstka do danej pozycji
 def moveRight(x,y,z,theta):
 	modeCart()
         print "Moving right wrist to position:",x,y,z,"\n"
@@ -153,7 +155,7 @@ def planAndExecute(q_dest):
         js = velma.getLastJointState()
         if not isConfigurationClose(q_dest, js[1]):
             exitError(6)
-
+#przełączanie trybów
 def modeImp():
 		print "Switch to jnt_imp mode (no trajectory)..."
 		velma.moveJointImpToCurrentPos(start_time=0.2)
@@ -183,7 +185,7 @@ def modeCart():
 
 
 def findDest(object):
-        #szukanie wierzcholkow stolu
+        #szukanie wierzcholkow stolu i wybór punktu upuszczenia obiektu
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu
 	objectAngle=objectFrame.M
         (a,b,alfa)=objectAngle.GetRPY() #kat obrotu stolu wokol polozenia rownowagi
@@ -268,26 +270,36 @@ if __name__ == "__main__":
     # planning...
     print "Planner init ok"
 
-
+#chwyć - trudniej o kolizję
 grabRight()
+#gdzie jest piwo
 (beerFrame,beerAngle)=locateObject("beer")
+#ręka do góry i obróć się w kierunku piwa (chwytamy prawą, więc trochę mocniej)
 highFive(beerAngle+0.15)
+#zwolnij chwyt i szykuj się do złapania piwa
 releaseRight() 
+#ustaw się bliżej i na dobrej osi
 moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
+#podjedź pod puszkę
 moveRight(beerFrame.p[0]-0.25*math.cos(beerAngle),beerFrame.p[1]-0.25*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
-#retreating
 grabRight()
+#powrót
 moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
 highFive(beerAngle+0.15)
-
+#znajdź stolik
 dest=findDest("table2")
+#nadgarstek nad stolik
 highFive(dest[3]+0.15)
+#ustaw się dokładnie nad punktem zrzutu
 moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3])
+#zrzut
 releaseRight()
     
 (beer_frame,beer_angle)=locateObject("beer")
 moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
-  
+#chwyć - trudniej o kolizję
+grabRight()
+#wróc do pozycji domyślnej
 print "Assuming resting position"
 planAndExecute(q_default_position)
               
