@@ -83,14 +83,17 @@ def highFive(torso_angle):
       
 def grabRight():
 	modeImp()
-        dest_q = [72.0/180.0*math.pi,72.0/180.0*math.pi,72.0/180.0*math.pi,0]
+        dest_q = [70.0/180.0*math.pi,70.0/180.0*math.pi,70.0/180.0*math.pi,0]
         print "Taking a hold"
         velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
         if velma.waitForHandRight() != 0:
             exitError(8)
         rospy.sleep(0.5)
         if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
-		print "Failure: Cannot take a hold"
+		print "Failure: Cannot take a hold. Returning to starting position"
+		releaseRight()
+		moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
+		planAndExecute(q_default_position)
         	exitError(9)
     
 def releaseRight():
@@ -270,7 +273,7 @@ grabRight()
 highFive(beerAngle+0.15)
 releaseRight() 
 moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
-moveRight(beerFrame.p[0]-0.3*math.cos(beerAngle),beerFrame.p[1]-0.3*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
+moveRight(beerFrame.p[0]-0.25*math.cos(beerAngle),beerFrame.p[1]-0.25*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
 rospy.sleep(0.5)
 grabRight()
 highFive(beerAngle+0.15)
