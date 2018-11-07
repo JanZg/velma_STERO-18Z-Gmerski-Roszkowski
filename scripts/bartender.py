@@ -43,8 +43,8 @@ from rcprg_planner import *
 from rcprg_ros_utils import exitError
 h_stolu=1
 h_puszki=0.23
-a_stolu=2.5
-b_stolu=2 
+a_stolu=1.5
+b_stolu=0.8  
 
 q_map_1 = {'torso_0_joint':0,
         'right_arm_0_joint': 0.,   'left_arm_0_joint':0.3,
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     # planning...
     print "Planner init ok"
   
-dest=findDest("table_marble")
+dest=findDest("table2")
 modeImp()
 grabRight()
 print "Assuming resting position"
