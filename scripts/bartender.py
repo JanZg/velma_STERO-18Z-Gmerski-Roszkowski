@@ -83,7 +83,7 @@ def highFive(torso_angle):
 
       
 def grabRight():
-        dest_q = [75.0/180.0*math.pi,75.0/180.0*math.pi,75.0/180.0*math.pi,0]
+        dest_q = [70.0/180.0*math.pi,70.0/180.0*math.pi,70.0/180.0*math.pi,0]
         print "Taking a hold"
         velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
         if velma.waitForHandRight() != 0:
@@ -92,16 +92,6 @@ def grabRight():
         if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
 		print "Failure: Object dropped"
         	exitError(9)
-    
-def grabLeft():
-        dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
-        print "Taking a hold"
-        velma.moveHandLeft(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
-        if velma.waitForHandLeft() != 0:
-            exitError(8)
-        rospy.sleep(0.5)
-        if not isHandConfigurationClose( velma.getHandLeftCurrentConfiguration(), dest_q):
-            exitError(9)
     
 def releaseRight():
         dest_q = [0,0,0,0]
@@ -214,7 +204,7 @@ def findDest(object):
              w1=w4
              wd1=wd4
 
-        w1=0.8*w1+0.2*w_sr
+        w1=0.9*w1+0.1*w_sr
         th=atan2(w1[1],w1[0])
         return (w1[0],w1[1],w1[2],th)
 
