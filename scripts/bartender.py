@@ -36,6 +36,7 @@
 import roslib; roslib.load_manifest('velma_task_cs_ros_interface')
 import rospy
 import PyKDL
+import math
 
 from velma_common import *
 from rcprg_planner import *
@@ -53,26 +54,18 @@ q_map_1 = {'torso_0_joint':0,
         'right_arm_4_joint': 0,      'left_arm_4_joint':0,
         'right_arm_5_joint': 0,   'left_arm_5_joint':0.5,
 'right_arm_6_joint': 0, 'left_arm_6_joint':0 }
-if __name__ == "__main__":
-    # define some configurations
-    def initAll():
-    # zweryfikowac z gazebo
+
+q_default_position = {'torso_0_joint':0,
+        'right_arm_0_joint':-0.3,   'left_arm_0_joint':0.3,
+        'right_arm_1_joint':-1.8,   'left_arm_1_joint':1.8,
+        'right_arm_2_joint':1.25,   'left_arm_2_joint':-1.25,
+        'right_arm_3_joint':0.85,   'left_arm_3_joint':-0.85,
+        'right_arm_4_joint':0,      'left_arm_4_joint':0,
+        'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
+        'right_arm_6_joint':0,      'left_arm_6_joint':0 }
+
       
-        q_default_position = {'torso_0_joint':0,
-            'right_arm_0_joint':-0.3,   'left_arm_0_joint':0.3,
-            'right_arm_1_joint':-1.8,   'left_arm_1_joint':1.8,
-            'right_arm_2_joint':1.25,   'left_arm_2_joint':-1.25,
-            'right_arm_3_joint':0.85,   'left_arm_3_joint':-0.85,
-            'right_arm_4_joint':0,      'left_arm_4_joint':0,
-            'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
-            'right_arm_6_joint':0,      'left_arm_6_joint':0 }
- 
-
-
-
-
- 
-    def grabRight():
+def grabRight():
         dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
         print "Taking a hold"
         velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
@@ -82,19 +75,19 @@ if __name__ == "__main__":
         if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
             exitError(9)
     
-    def grabLeft():
+def grabLeft():
         dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
         print "Taking a hold"
         velma.moveHandLeft(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
-        if velma.waitForLeftRight() != 0:
+        if velma.waitForHandLeft() != 0:
             exitError(8)
         rospy.sleep(0.5)
         if not isHandConfigurationClose( velma.getHandLeftCurrentConfiguration(), dest_q):
             exitError(9)
     
-    def releaseRight():
+def releaseRight():
         dest_q = [0,0,0,0]
-        print "Taking a hold"
+        print "Releasing"
         velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
         if velma.waitForHandRight() != 0:
             exitError(8)
@@ -102,9 +95,9 @@ if __name__ == "__main__":
         if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
             exitError(9)
     
-    def releaseLeft():
+def releaseLeft():
         dest_q = [0,0,0,0]
-        print "Taking a hold"
+        print "Releasing"
         velma.moveHandLeft(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
         if velma.waitForLeftRight() != 0:
             exitError(8)
@@ -112,13 +105,13 @@ if __name__ == "__main__":
         if not isHandConfigurationClose( velma.getHandLeftCurrentConfiguration(), dest_q):
             exitError(9)
  	         
-    def locateObject(object):
+def locateObject(object):
  
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu	
         objectAngle=math.atan2(objectFrame.p[1],objectFrame.p[0])
         return objectFrame, objectAngle
      
-    def moveRight(x,y,z,theta):
+def moveRight(x,y,z,theta):
 
         print "Moving right wrist to pose defined in world frame..."
         T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( x , y , z ))
@@ -133,7 +126,7 @@ if __name__ == "__main__":
         if T_B_T_diff.vel.Norm() > 0.05 or T_B_T_diff.rot.Norm() > 0.05:
             exitError(10)
 
-    def moveLeft(x,y,z,theta):
+def moveLeft(x,y,z,theta):
 
         print "Moving left wrist to pose defined in world frame..."
         T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( 0.9*x , 0.9*y , z+0.115 ))
@@ -148,9 +141,7 @@ if __name__ == "__main__":
         if T_B_T_diff.vel.Norm() > 0.05 or T_B_T_diff.rot.Norm() > 0.05:
             exitError(10)
 
-
-     # define a function for frequently used routine in this test
-    def planAndExecute(q_dest):
+def planAndExecute(q_dest):
         print "Planning motion to the goal position using set of all joints..."
         print "Moving to valid position, using planned trajectory."
         goal_constraint = qMapToConstraints(q_dest, 0.01, group=velma.getJointGroup("impedance_joints"))
@@ -173,70 +164,36 @@ if __name__ == "__main__":
         js = velma.getLastJointState()
         if not isConfigurationClose(q_dest, js[1]):
             exitError(6)
+
+def modeImp():
+		print "Switch to jnt_imp mode (no trajectory)..."
+		velma.moveJointImpToCurrentPos(start_time=0.2)
+		error = velma.waitForJoint()
+		if error != 0:
+			print "The action should have ended without error, but the error code is", error
+			exitError(3)
  
-        
-    def switchMode():
-        diag = velma.getCoreCsDiag()
-        if  diag.inStateCartImp():
-            print "Switch to jnt_imp mode (no trajectory)..."
-            velma.moveJointImpToCurrentPos(start_time=0.2)
-            error = velma.waitForJoint()
-            if error != 0:
-                print "The action should have ended without error, but the error code is", error
-                exitError(3)
- 
-            rospy.sleep(0.5)
-            diag = velma.getCoreCsDiag()
-            if not diag.inStateJntImp():
-                print "The core_cs should be in jnt_imp state, but it is not"
-                exitError(3)
-        else: 
-            # get initial configuration
-            js_init = velma.getLastJointState()
- 
-            print "Switch to cart_imp mode (no trajectory)..."
-            if not velma.moveCartImpRightCurrentPos(start_time=0.2):
-                exitError(8)
-            if velma.waitForEffectorRight() != 0:
-                exitError(9)
- 
-            rospy.sleep(0.5)
-            diag = velma.getCoreCsDiag()
-            if not diag.inStateCartImp():
-                print "The core_cs should be in cart_imp state, but it is not"
-                exitError(3)
-    def modeImp():
-            print "Switch to jnt_imp mode (no trajectory)..."
-            velma.moveJointImpToCurrentPos(start_time=0.2)
-            error = velma.waitForJoint()
-            if error != 0:
-                print "The action should have ended without error, but the error code is", error
-                exitError(3)
- 
-            rospy.sleep(0.5)
-            diag = velma.getCoreCsDiag()
-            if not diag.inStateJntImp():
-                print "The core_cs should be in jnt_imp state, but it is not"
-                exitError(3)
+		rospy.sleep(0.5)
+		diag = velma.getCoreCsDiag()
+		if not diag.inStateJntImp():
+			print "The core_cs should be in jnt_imp state, but it is not"
+			exitError(3)
 
 
-    def modeCart():
-        js_init = velma.getLastJointState()
- 
-        print "Switch to cart_imp mode (no trajectory)..."
-        if not velma.moveCartImpRightCurrentPos(start_time=0.2):
-            exitError(8)
-        if velma.waitForEffectorRight() != 0:
-            exitError(9)
- 
-        rospy.sleep(0.5)
-        diag = velma.getCoreCsDiag()
-        if not diag.inStateCartImp():
-            print "The core_cs should be in cart_imp state, but it is not"
-            exitError(3)
-        
-       
-    def findDest(object):
+def modeCart():
+		print "Switch to cart_imp mode (no trajectory)..."
+		if not velma.moveCartImpRightCurrentPos(start_time=0.2):
+			exitError(8)
+		if velma.waitForEffectorRight() != 0:
+			exitError(9)
+		rospy.sleep(0.5)
+		diag = velma.getCoreCsDiag()
+		if not diag.inStateCartImp():
+			print "The core_cs should be in cart_imp state, but it is not"
+			exitError(3)
+
+
+def findDest(object):
         #szukanie wierzcholkow stolu
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu
         alfa=objectFrame.m[2] #kat obrotu stolu wokol polozenia rownowagi
@@ -268,6 +225,8 @@ if __name__ == "__main__":
         th=atan2(w1[1],w1[0])
         return (w1[0],w1[1],w1[2],th)
 
+if __name__ == "__main__":
+    # define some configurations
         
     #Step 1: zaciskamy palce
     #Step 2: zblizamy sie do puszki
@@ -278,7 +237,6 @@ if __name__ == "__main__":
     #Step 7: upuszczamy puszke
     #Step 8: podnosimy chwytak nad puszke, aby jej nie potracic
     #Step 9: wracamy do pozycji domyslnej
-    
     rospy.init_node('test_cimp_pose')
     rospy.sleep(0.5)
     print "Running python interface for Velma..."
@@ -311,41 +269,39 @@ if __name__ == "__main__":
     p.processWorld(octomap)
     # planning...
     print "Planner init ok"
- 
-    if velma.enableMotors() != 0:
-        exitError(14)    
+  
+
+modeImp()
+grabRight()
+planAndExecute(q_default_position)
+modeCart()
+
+(beerFrame,beerAngle)=locateObject("beer")
+moveRight(0.5,-0.5,1.25,beerAngle)
     
-    modeImp()
-    grabRight()
-    planAndExecute(q_map_1)
-    releaseRight()
-    modeCart()
+moveRight(0.8*beerFrame.p[0],0.8*beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
+rospy.sleep(0.5)
+modeImp()
+releaseRight()
+modeCart()
     
-    (beerFrame,beerAngle)=locateObject("beer")
+moveRight(beerFrame.p[0],beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
+modeImp()
+grabRight()
+modeCart()
     
-    moveRight(0.95*beerFrame.p[0],0.95*beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
-    rospy.sleep(0.5)
-    modeImp()
-    releaseRight()
-    modeCart()
+dest=findDest("table_marble")
+moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3])
     
-    moveRight(beerFrame.p[0],beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
-    modeImp()
-    grabRight()
-    modeCart()
+modeImp()
+releaseRight()
     
-    dest=findDest("table_marble")
-    moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3])
+(beer_frame,beer_angle)=locateObject("beer")
+modeCart()
+moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
     
-    modeImp()
-    releaseRight()
-    
-    (beer_frame,beer_angle)=locateObject("beer")
-    modeCart()
-    moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
-    
-    modeImp()
-    plan_and_execute(q_default_position)
+modeImp()
+planAndExecute(q_default_position)
               
 
 
