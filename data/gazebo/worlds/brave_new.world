@@ -10,7 +10,7 @@
     <gravity>0 0 -9.8</gravity>
     <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
     <atmosphere type='adiabatic'/>
-        <physics name='dart_2ms' default='1' type='dart'>
+    <physics name='dart_2ms' default='1' type='dart'>
       <max_step_size>0.002</max_step_size>
       <real_time_factor>1</real_time_factor>
       <real_time_update_rate>500</real_time_update_rate>
@@ -535,13 +535,13 @@
     <state world_name='default'>
       <sim_time>0 0</sim_time>
       <real_time>0 0</real_time>
-      <wall_time>1541544297 307021127</wall_time>
+      <wall_time>1541624335 349709142</wall_time>
       <iterations>0</iterations>
       <model name='beer'>
-        <pose frame=''>-0.294794 -1.21027 1.05 0 -0 0</pose>
+        <pose frame=''>-0.294794 -1 1.05 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose frame=''>-0.294794 -1.21027 1.165 0 -0 0</pose>
+          <pose frame=''>-0.294794 -1 1.165 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -558,10 +558,10 @@
         </link>
       </model>
       <model name='table'>
-        <pose frame=''>0 -1.25 0 0 -0 0</pose>
+        <pose frame=''>0 -1.2 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose frame=''>0 -1.25 0 0 -0 0</pose>
+          <pose frame=''>0 -1.2 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -583,7 +583,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>0.952416 -4.80343 1.63657 0 0.077649 2.0726</pose>
+        <pose frame=''>4.79402 -2.82877 4.31897 0 0.369649 2.4566</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>

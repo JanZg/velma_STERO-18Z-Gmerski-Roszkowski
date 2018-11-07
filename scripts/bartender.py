@@ -30,7 +30,7 @@
  # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  #
- # Author: Teodor Teodorowicz
+ # Author: Dawid Seredynski
  #
  
 import roslib; roslib.load_manifest('velma_task_cs_ros_interface')
@@ -44,7 +44,7 @@ from rcprg_ros_utils import exitError
 h_stolu=1
 h_puszki=0.23
 a_stolu=1.5
-b_stolu=0.8  
+b_stolu=0.8
 
 q_map_1 = {'torso_0_joint':0,
         'right_arm_0_joint': 0.,   'left_arm_0_joint':0.3,
@@ -77,12 +77,12 @@ def highFive(torso_angle):
         'right_arm_4_joint':0,      'left_arm_4_joint':0,
         'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
         'right_arm_6_joint':0,      'left_arm_6_joint':0 }
-		print "Spinning"
-		modeImp()
+		print "Spinning and going up"
 		planAndExecute(q_map_to_spin)
 
       
 def grabRight():
+	modeImp()
         dest_q = [72.0/180.0*math.pi,72.0/180.0*math.pi,72.0/180.0*math.pi,0]
         print "Taking a hold"
         velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
@@ -90,10 +90,11 @@ def grabRight():
             exitError(8)
         rospy.sleep(0.5)
         if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
-		print "Failure: Object dropped"
+		print "Failure: Cannot take a hold"
         	exitError(9)
     
 def releaseRight():
+	modeImp()
         dest_q = [0,0,0,0]
         print "Releasing"
         velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
@@ -107,11 +108,12 @@ def locateObject(object):
  
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu	
         objectAngle=math.atan2(objectFrame.p[1],objectFrame.p[0])
+	print "Coordinates of beer:", objectFrame.p[0], objectFrame.p[1], "\n"
         return objectFrame, objectAngle
      
 def moveRight(x,y,z,theta):
-
-        print "Moving right wrist to pose defined in world frame..."
+	modeCart()
+        print "Moving right wrist to position:",x,y,z,"\n"
         T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( x , y , z ))
         if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
             exitError(8)
@@ -125,6 +127,7 @@ def moveRight(x,y,z,theta):
             exitError(10)
 
 def planAndExecute(q_dest):
+	modeImp()
         print "Planning motion to the goal position using set of all joints..."
         print "Moving to valid position, using planned trajectory."
         goal_constraint = qMapToConstraints(q_dest, 0.01, group=velma.getJointGroup("impedance_joints"))
@@ -181,6 +184,7 @@ def findDest(object):
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu
 	objectAngle=objectFrame.M
         (a,b,alfa)=objectAngle.GetRPY() #kat obrotu stolu wokol polozenia rownowagi
+	alfa=0.785-alfa
         beta=math.atan2(b_stolu,a_stolu)   #kat miedzy przekatna stolu a jego dlugoscia
         d=math.sqrt(math.pow(a_stolu,2)+math.pow(b_stolu,2))  #przekatna stolu
         
@@ -193,8 +197,8 @@ def findDest(object):
         w_sr=(objectFrame.p[0],objectFrame.p[1],objectFrame.p[2])
         w1=(w_sr[0]+0.5*d*math.sin(alfa+beta),w_sr[1]+0.5*d*math.cos(alfa+beta),w_sr[2])
         w3=(w_sr[0]-0.5*d*math.sin(alfa+beta),w_sr[1]-0.5*d*math.cos(alfa+beta),w_sr[2])
-        w2=(w_sr[0]+0.5*d*math.cos(alfa-beta),w_sr[1]+0.5*d*math.sin(alfa-beta),w_sr[2])
-        w4=(w_sr[0]-0.5*d*math.cos(alfa-beta),w_sr[1]-0.5*d*math.sin(alfa-beta),w_sr[2])
+        w2=(w_sr[0]-0.5*d*math.cos(alfa-beta),w_sr[1]+0.5*d*math.sin(alfa-beta),w_sr[2])
+        w4=(w_sr[0]+0.5*d*math.cos(alfa-beta),w_sr[1]-0.5*d*math.sin(alfa-beta),w_sr[2])
 	
         wd1=math.sqrt(w1[0]*w1[0]+w1[1]*w1[1])
         wd2=math.sqrt(w2[0]*w2[0]+w2[1]*w2[1])
@@ -212,7 +216,7 @@ def findDest(object):
              w1=w4
              wd1=wd4
 	w1=(0.9*w1[0]+0.1*w_sr[0],0.9*w1[1]+0.1*w_sr[1],w1[2])
-	print "Coordinates to drop:", w1[0], w1[1], w1[2], "\n"
+	print "Coordinates to drop:", w1[0], w1[1], "\n"
         th=math.atan2(w1[1],w1[0])
         return (w1[0],w1[1],w1[2],th)
 
@@ -261,35 +265,24 @@ if __name__ == "__main__":
     # planning...
     print "Planner init ok"
   
-dest=findDest("table2")
-modeImp()
 grabRight()
-print "Assuming resting position"
-planAndExecute(q_default_position)
-
 (beerFrame,beerAngle)=locateObject("beer")
 highFive(beerAngle+0.15)
-releaseRight()
-modeCart()  
+releaseRight() 
 moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
-moveRight(0.7*beerFrame.p[0],0.7*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
+moveRight(beerFrame.p[0]-0.3*math.cos(beerAngle),beerFrame.p[1]-0.3*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
 rospy.sleep(0.5)
-modeImp()
 grabRight()
 highFive(beerAngle+0.15)
-    
+
+dest=findDest("table2")
 highFive(dest[3]+0.15)
-modeCart()
 moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3])
-    
-modeImp()
 releaseRight()
     
 (beer_frame,beer_angle)=locateObject("beer")
-modeCart()
 moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
   
-modeImp()
 print "Assuming resting position"
 planAndExecute(q_default_position)
               
