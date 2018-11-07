@@ -267,15 +267,17 @@ if __name__ == "__main__":
     p.processWorld(octomap)
     # planning...
     print "Planner init ok"
-  
+
+
 grabRight()
 (beerFrame,beerAngle)=locateObject("beer")
 highFive(beerAngle+0.15)
 releaseRight() 
 moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
 moveRight(beerFrame.p[0]-0.25*math.cos(beerAngle),beerFrame.p[1]-0.25*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
-rospy.sleep(0.5)
+#retreating
 grabRight()
+moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
 highFive(beerAngle+0.15)
 
 dest=findDest("table2")
