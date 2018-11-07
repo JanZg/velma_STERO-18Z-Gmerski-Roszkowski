@@ -197,8 +197,8 @@ def findDest(object):
         w4=(w_sr[0]-0.5*d*math.cos(alfa-beta),w_sr[1]-0.5*d*math.sin(alfa-beta),w_sr[2])
 	
         wd1=math.sqrt(w1[0]*w1[0]+w1[1]*w1[1])
-        wd2=math.sqrt(w1[0]*w2[0]+w2[1]*w2[1])
-        wd3=math.sqrt(w1[0]*w3[0]+w3[1]*w3[1])
+        wd2=math.sqrt(w2[0]*w2[0]+w2[1]*w2[1])
+        wd3=math.sqrt(w3[0]*w3[0]+w3[1]*w3[1])
         wd4=math.sqrt(w4[0]*w4[0]+w4[1]*w4[1])
         
 	#Sprawdzamy ktory wierzcholek stolu jest najblizej velmy - w jego poblizu bedziemy stawiac puszke
