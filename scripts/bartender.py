@@ -40,10 +40,19 @@ import PyKDL
 from velma_common import *
 from rcprg_planner import *
 from rcprg_ros_utils import exitError
-h_stolu=0.53
+h_stolu=1
 h_puszki=0.23
 a_stolu=1.5
 b_stolu=0.8  
+
+q_map_1 = {'torso_0_joint':0,
+        'right_arm_0_joint': 0.,   'left_arm_0_joint':0.3,
+        'right_arm_1_joint': 0,   'left_arm_1_joint':1.8,
+        'right_arm_2_joint': 0,   'left_arm_2_joint':-1.25,
+        'right_arm_3_joint': 0,   'left_arm_3_joint':-0.85,
+        'right_arm_4_joint': 0,      'left_arm_4_joint':0,
+        'right_arm_5_joint': 0,   'left_arm_5_joint':0.5,
+'right_arm_6_joint': 0, 'left_arm_6_joint':0 }
 if __name__ == "__main__":
     # define some configurations
     def initAll():
@@ -61,32 +70,7 @@ if __name__ == "__main__":
 
 
 
-	print "Motors must be enabled every time after the robot enters safe state."
-     	print "If the motors are already enabled, enabling them has no effect."
-     	print "Enabling motors..."
-     	if velma.enableMotors() != 0:
-		exitError(2)
 
-	print "waiting for Planner init..."
-        p = Planner(velma.maxJointTrajLen())
-        if not p.waitForInit():
-            print "could not initialize PLanner"
-            exitError(2)
- 
-        diag = velma.getCoreCsDiag()
-        if not diag.motorsReady():
-            print "Motors must be homed and ready to use for this test."
-            exitError(1)
- 
-        oml = OctomapListener("/octomap_binary")
-        rospy.sleep(1.0)
-        octomap = oml.getOctomap(timeout_s=5.0)
-        p.processWorld(octomap)
-        # planning...
-        print "Planner init ok"
- 
-        if velma.enableMotors() != 0:
-            exitError(14)
  
     def grabRight():
         dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
@@ -304,15 +288,43 @@ if __name__ == "__main__":
         print "Could not initialize VelmaInterface\n"
         exitError(1)
     print "Initialization ok!\n"
-    initAll()
+    print "Motors must be enabled every time after the robot enters safe state."
+    print "If the motors are already enabled, enabling them has no effect."
+    print "Enabling motors..."
+    if velma.enableMotors() != 0:
+        exitError(2)
+
+    print "waiting for Planner init..."
+    p = Planner(velma.maxJointTrajLen())
+    if not p.waitForInit():
+        print "could not initialize PLanner"
+        exitError(2)
+ 
+    diag = velma.getCoreCsDiag()
+    if not diag.motorsReady():
+        print "Motors must be homed and ready to use for this test."
+        exitError(1)
+ 
+    oml = OctomapListener("/octomap_binary")
+    rospy.sleep(1.0)
+    octomap = oml.getOctomap(timeout_s=5.0)
+    p.processWorld(octomap)
+    # planning...
+    print "Planner init ok"
+ 
+    if velma.enableMotors() != 0:
+        exitError(14)    
     
     modeImp()
     grabRight()
+    planAndExecute(q_map_1)
+    releaseRight()
     modeCart()
     
     (beerFrame,beerAngle)=locateObject("beer")
     
-    moveRight(0.9*beerFrame.p[0],0.9*beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
+    moveRight(0.95*beerFrame.p[0],0.95*beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
+    rospy.sleep(0.5)
     modeImp()
     releaseRight()
     modeCart()
@@ -322,7 +334,7 @@ if __name__ == "__main__":
     grabRight()
     modeCart()
     
-    dest=findDest(table2)
+    dest=findDest("table_marble")
     moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3])
     
     modeImp()
