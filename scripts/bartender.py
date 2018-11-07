@@ -184,17 +184,24 @@ def findDest(object):
         beta=math.atan2(b_stolu,a_stolu)   #kat miedzy przekatna stolu a jego dlugoscia
         d=math.sqrt(math.pow(a_stolu,2)+math.pow(b_stolu,2))  #przekatna stolu
         
+    #    w_sr=(objectFrame.p[0],objectFrame.p[1],objectFrame.p[2])
+     #   w1=w_sr+(0.5*d*math.sin(alfa+beta),0.5*d*math.cos(alfa+beta),0)
+    #    w3=w_sr+(-0.5*d*math.sin(alfa+beta),-0.5*d*math.cos(alfa+beta),0)
+    #    w2=w_sr+(0.5*d*math.cos(alfa-beta),0.5*d*math.sin(alfa-beta),0)
+    #    w4=w_sr+(-0.5*d*math.cos(alfa-beta),-0.5*d*math.sin(alfa-beta),0)
+
         w_sr=(objectFrame.p[0],objectFrame.p[1],objectFrame.p[2])
-        w1=w_sr+(0.5*d*math.sin(alfa+beta),0.5*d*math.cos(alfa+beta),0)
-        w3=w_sr+(-0.5*d*math.sin(alfa+beta),-0.5*d*math.cos(alfa+beta),0)
-        w2=w_sr+(0.5*d*math.cos(alfa-beta),0.5*d*math.sin(alfa-beta),0)
-        w4=w_sr+(-0.5*d*math.cos(alfa-beta),-0.5*d*math.sin(alfa-beta),0)
+        w1=(w_sr[0]+0.5*d*math.sin(alfa+beta),w_sr[1]+0.5*d*math.cos(alfa+beta),w_sr[2])
+        w3=(w_sr[0]-0.5*d*math.sin(alfa+beta),w_sr[1]-0.5*d*math.cos(alfa+beta),w_sr[2])
+        w2=(w_sr[0]+0.5*d*math.cos(alfa-beta),w_sr[1]+0.5*d*math.sin(alfa-beta),w_sr[2])
+        w4=(w_sr[0]-0.5*d*math.cos(alfa-beta),w_sr[1]-0.5*d*math.sin(alfa-beta),w_sr[2])
 	
         wd1=math.sqrt(w1[0]*w1[0]+w1[1]*w1[1])
         wd2=math.sqrt(w1[0]*w2[0]+w2[1]*w2[1])
         wd3=math.sqrt(w1[0]*w3[0]+w3[1]*w3[1])
         wd4=math.sqrt(w4[0]*w4[0]+w4[1]*w4[1])
         
+	#Sprawdzamy ktory wierzcholek stolu jest najblizej velmy - w jego poblizu bedziemy stawiac puszke
         if(wd1>wd2): 
              w1=w2
              wd1=wd2
