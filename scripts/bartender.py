@@ -64,16 +64,34 @@ q_default_position = {'torso_0_joint':0,
         'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
         'right_arm_6_joint':0,      'left_arm_6_joint':0 }
 
+def highFive(torso_angle):
+		if(torso_angle>1.56):
+			 torso_angle=1.56
+		if(torso_angle<-1.56):
+			 torso_angle=-1.56
+		q_map_to_spin = {'torso_0_joint':torso_angle, 
+        'right_arm_0_joint':1,   'left_arm_0_joint':0.3,
+        'right_arm_1_joint':-1.2,   'left_arm_1_joint':1.8,
+        'right_arm_2_joint':1.25,   'left_arm_2_joint':-1.25,
+        'right_arm_3_joint':2,   'left_arm_3_joint':-0.85,
+        'right_arm_4_joint':0,      'left_arm_4_joint':0,
+        'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
+        'right_arm_6_joint':0,      'left_arm_6_joint':0 }
+		print "Spinning"
+		modeImp()
+		planAndExecute(q_map_to_spin)
+
       
 def grabRight():
-        dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
+        dest_q = [75.0/180.0*math.pi,75.0/180.0*math.pi,75.0/180.0*math.pi,0]
         print "Taking a hold"
         velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
         if velma.waitForHandRight() != 0:
             exitError(8)
         rospy.sleep(0.5)
         if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
-            exitError(9)
+		print "Failure: Object dropped"
+        	exitError(9)
     
 def grabLeft():
         dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,0]
@@ -94,16 +112,6 @@ def releaseRight():
         rospy.sleep(0.5)
         if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
             exitError(9)
-    
-def releaseLeft():
-        dest_q = [0,0,0,0]
-        print "Releasing"
-        velma.moveHandLeft(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
-        if velma.waitForLeftRight() != 0:
-            exitError(8)
-        rospy.sleep(0.5)
-        if not isHandConfigurationClose( velma.getHandLeftCurrentConfiguration(), dest_q):
-            exitError(9)
  	         
 def locateObject(object):
  
@@ -118,21 +126,6 @@ def moveRight(x,y,z,theta):
         if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
             exitError(8)
         if velma.waitForEffectorRight() != 0:
-            exitError(9)
-        rospy.sleep(0.5)
-        print "calculating difference between desiread and reached pose..."
-        T_B_T_diff = PyKDL.diff(T_B_Trd, velma.getTf("B", "Tr"), 1.0)
-        print T_B_T_diff
-        if T_B_T_diff.vel.Norm() > 0.05 or T_B_T_diff.rot.Norm() > 0.05:
-            exitError(10)
-
-def moveLeft(x,y,z,theta):
-
-        print "Moving left wrist to pose defined in world frame..."
-        T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( 0.9*x , 0.9*y , z+0.115 ))
-        if not velma.moveCartImpLeft([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
-            exitError(8)
-        if velma.waitForEffectorLeft() != 0:
             exitError(9)
         rospy.sleep(0.5)
         print "calculating difference between desiread and reached pose..."
@@ -273,24 +266,23 @@ if __name__ == "__main__":
 
 modeImp()
 grabRight()
+print "Assuming resting position"
 planAndExecute(q_default_position)
-modeCart()
 
 (beerFrame,beerAngle)=locateObject("beer")
-moveRight(0.5,-0.5,1.25,beerAngle)
-    
-moveRight(0.8*beerFrame.p[0],0.8*beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
+highFive(beerAngle+0.15)
+releaseRight()
+modeCart()  
+moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
+moveRight(0.7*beerFrame.p[0],0.7*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
 rospy.sleep(0.5)
 modeImp()
-releaseRight()
-modeCart()
-    
-moveRight(beerFrame.p[0],beerFrame.p[1],0.5*h_puszki+beerFrame.p[2],beerAngle)
-modeImp()
 grabRight()
-modeCart()
+highFive(beerAngle+0.15)
     
 dest=findDest("table_marble")
+highFive(dest[3]+0.15)
+modeCart()
 moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3])
     
 modeImp()
@@ -299,8 +291,9 @@ releaseRight()
 (beer_frame,beer_angle)=locateObject("beer")
 modeCart()
 moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
-    
+  
 modeImp()
+print "Assuming resting position"
 planAndExecute(q_default_position)
               
 
