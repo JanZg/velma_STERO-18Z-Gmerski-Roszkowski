@@ -43,8 +43,8 @@ from rcprg_planner import *
 from rcprg_ros_utils import exitError
 h_stolu=1
 h_puszki=0.23
-a_stolu=1.5
-b_stolu=0.8  
+a_stolu=2.5
+b_stolu=2 
 
 q_map_1 = {'torso_0_joint':0,
         'right_arm_0_joint': 0.,   'left_arm_0_joint':0.3,
@@ -83,7 +83,7 @@ def highFive(torso_angle):
 
       
 def grabRight():
-        dest_q = [70.0/180.0*math.pi,70.0/180.0*math.pi,70.0/180.0*math.pi,0]
+        dest_q = [72.0/180.0*math.pi,72.0/180.0*math.pi,72.0/180.0*math.pi,0]
         print "Taking a hold"
         velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
         if velma.waitForHandRight() != 0:
@@ -179,20 +179,21 @@ def modeCart():
 def findDest(object):
         #szukanie wierzcholkow stolu
         objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu
-        alfa=objectFrame.m[2] #kat obrotu stolu wokol polozenia rownowagi
-        beta=atan2(b_stolu,a_stolu)   #kat miedzy przekatna stolu a jego dlugoscia
+	objectAngle=objectFrame.M
+        (a,b,alfa)=objectAngle.GetRPY() #kat obrotu stolu wokol polozenia rownowagi
+        beta=math.atan2(b_stolu,a_stolu)   #kat miedzy przekatna stolu a jego dlugoscia
         d=math.sqrt(math.pow(a_stolu,2)+math.pow(b_stolu,2))  #przekatna stolu
         
         w_sr=(objectFrame.p[0],objectFrame.p[1],objectFrame.p[2])
-        w1=w_sr+(0.5*d*math.sin(alfa+beta),0.5*d.math*cos(alfa+beta),0)
-        w3=w_sr-(0.5*d*math.sin(alfa+beta),0.5*d.math*cos(alfa+beta),0)
-        w2=w_sr+(0.5*d*math.cos(alfa-beta),0.5*d.math.sin(alfa-beta),0)
-        w4=w_sr-(0.5*d*math.cos(alfa-beta),0.5*d.math.sin(alfa-beta),0)
-
-        wd1=sqrt(w1[0]*w1[0]+w1[1]*w1[1])
-        wd2=sqrt(w1[0]*w2[0]+w2[1]*w2[1])
-        wd3=sqrt(w1[0]*w3[0]+w3[1]*w3[1])
-        wd4=sqrt(w4[0]*w4[0]+w4[1]*w4[1])
+        w1=w_sr+(0.5*d*math.sin(alfa+beta),0.5*d*math.cos(alfa+beta),0)
+        w3=w_sr+(-0.5*d*math.sin(alfa+beta),-0.5*d*math.cos(alfa+beta),0)
+        w2=w_sr+(0.5*d*math.cos(alfa-beta),0.5*d*math.sin(alfa-beta),0)
+        w4=w_sr+(-0.5*d*math.cos(alfa-beta),-0.5*d*math.sin(alfa-beta),0)
+	
+        wd1=math.sqrt(w1[0]*w1[0]+w1[1]*w1[1])
+        wd2=math.sqrt(w1[0]*w2[0]+w2[1]*w2[1])
+        wd3=math.sqrt(w1[0]*w3[0]+w3[1]*w3[1])
+        wd4=math.sqrt(w4[0]*w4[0]+w4[1]*w4[1])
         
         if(wd1>wd2): 
              w1=w2
@@ -203,9 +204,9 @@ def findDest(object):
         if(wd1>wd4):
              w1=w4
              wd1=wd4
-
-        w1=0.9*w1+0.1*w_sr
-        th=atan2(w1[1],w1[0])
+	w1=(0.9*w1[0]+0.1*w_sr[0],0.9*w1[1]+0.1*w_sr[1],w1[2])
+	print "Coordinates to drop:", w1[0], w1[1], w1[2], "\n"
+        th=math.atan2(w1[1],w1[0])
         return (w1[0],w1[1],w1[2],th)
 
 if __name__ == "__main__":
@@ -253,7 +254,7 @@ if __name__ == "__main__":
     # planning...
     print "Planner init ok"
   
-
+dest=findDest("table_marble")
 modeImp()
 grabRight()
 print "Assuming resting position"
@@ -270,7 +271,6 @@ modeImp()
 grabRight()
 highFive(beerAngle+0.15)
     
-dest=findDest("table_marble")
 highFive(dest[3]+0.15)
 modeCart()
 moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3])
