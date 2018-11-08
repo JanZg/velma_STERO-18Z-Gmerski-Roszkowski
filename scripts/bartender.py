@@ -216,7 +216,7 @@ def findDest(object):
     if(wd1>wd4):
         w1=w4
         wd1=wd4
-    w1=(0.85*w1[0]+0.15*w_sr[0],0.85*w1[1]+0.15*w_sr[1],w1[2])
+    w1=(0.7*w1[0]+0.3*w_sr[0],0.7*w1[1]+0.3*w_sr[1],w1[2])
     print "Coordinates to drop:", w1[0], w1[1], "\n"
     th=math.atan2(w1[1],w1[0])
     return (w1[0],w1[1],w1[2],th)
@@ -283,7 +283,7 @@ if __name__ == "__main__":
 #nadgarstek nad stolik
     highFive(dest[3]+0.15)
 #ustaw sie dokladnie nad punktem zrzutu 
-    moveRight(dest[0],dest[1],dest[2]+0.45+h_stolu,dest[3]+0.15)
+    moveRight(dest[0],dest[1],dest[2]+0.55+h_stolu,dest[3]+0.15)
 #zrzut
     releaseRight()
     

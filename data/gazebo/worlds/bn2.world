@@ -70,21 +70,8 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <pose frame=''>0.66634 -2.06336 0 0 -0 0</pose>
+      <pose frame=''>-0.27665 0.920495 0 0 -0 0</pose>
     </model>
-    <light name='user_point_light_0' type='point'>
-      <pose frame=''>3.7512 -1.71142 1 0 -0 0</pose>
-      <diffuse>0.5 0.5 0.5 1</diffuse>
-      <specular>0.1 0.1 0.1 1</specular>
-      <attenuation>
-        <range>20</range>
-        <constant>0.5</constant>
-        <linear>0.01</linear>
-        <quadratic>0.001</quadratic>
-      </attenuation>
-      <cast_shadows>0</cast_shadows>
-      <direction>0 0 -1</direction>
-    </light>
     <model name='table'>
       <static>1</static>
       <link name='link'>
@@ -278,7 +265,7 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <pose frame=''>-0.166956 -1.81458 0 0 -0 0</pose>
+      <pose frame=''>-0.832742 1.34693 0 0 -0 0</pose>
     </model>
     <model name='table_0'>
       <static>1</static>
@@ -473,7 +460,7 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <pose frame=''>0.796555 0.440315 0 0 -0 0</pose>
+      <pose frame=''>1.14113 1.36296 0 0 -0 0</pose>
     </model>
     <model name='beer'>
       <link name='link'>
@@ -530,60 +517,57 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <pose frame=''>-0.294794 -1.21027 0 0 -0 0</pose>
+      <pose frame=''>-0.88341 1.17784 0 0 -0 0</pose>
     </model>
     <state world_name='default'>
       <sim_time>0 0</sim_time>
       <real_time>0 0</real_time>
-      <wall_time>1541655923 738575128</wall_time>
+      <wall_time>1541654817 722748747</wall_time>
       <iterations>0</iterations>
       <model name='beer'>
-        <pose frame=''>-0.294794 -1 1.05 0 -0 0</pose>
+        <pose frame=''>-0.136839 0.909591 1.17925 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose frame=''>-0.294794 -1 1.165 0 -0 0</pose>
+          <pose frame=''>-0.136839 0.909591 1.29425 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='ground_plane'>
-        <pose frame=''>0 0 0 0 -0 0</pose>
+        <pose frame=''>-0.27665 0.920495 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose frame=''>0 0 0 0 -0 0</pose>
+          <pose frame=''>-0.27665 0.920495 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='table'>
-        <pose frame=''>0 -1.2 0 0 -0 0</pose>
+        <pose frame=''>-0.978522 1.32151 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose frame=''>0 -1.2 0 0 -0 0</pose>
+          <pose frame=''>-0.978522 1.32151 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='table_0'>
-        <pose frame=''>1.05593 0.000155 0 0 -0 1.57</pose>
+        <pose frame=''>1.38123 1.0647 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
-          <pose frame=''>1.05593 0.000155 0 0 -0 1.57</pose>
+          <pose frame=''>1.38123 1.0647 0 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <light name='user_point_light_0'>
-        <pose frame=''>0 0 5 0 -0 0</pose>
-      </light>
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>-15.7305 2.99236 9.39542 -0 0.469649 0.148599</pose>
+        <pose frame=''>7.3795 -6.54533 5.41657 0 0.275643 2.35619</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
