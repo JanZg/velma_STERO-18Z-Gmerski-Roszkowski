@@ -216,7 +216,7 @@ def findDest(object):
     if(wd1>wd4):
         w1=w4
         wd1=wd4
-    w1=(0.7*w1[0]+0.3*w_sr[0],0.7*w1[1]+0.3*w_sr[1],w1[2])
+    w1=(0.85*w1[0]+0.15*w_sr[0],0.85*w1[1]+0.15*w_sr[1],w1[2])
     print "Coordinates to drop:", w1[0], w1[1], "\n"
     th=math.atan2(w1[1],w1[0])
     return (w1[0],w1[1],w1[2],th)
@@ -260,18 +260,20 @@ if __name__ == "__main__":
     # planning...
     print "Planner init ok"
 
+
+
 #chwyc - trudniej o kolizje
     grabRight()
 #gdzie jest piwo
     (beerFrame,beerAngle)=locateObject("beer")
-#reka do gory i obroc sie w kierunku piwa (chwytamy prawa, wiec trochę mocniej)
+
     highFive(beerAngle+0.15)
 #zwolnij chwyt i szykuj sie do zlapania piwa
     releaseRight() 
 #ustaw sie blizej i na dobrej osi
     moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
 #podjedz pod puszke
-    moveRight(beerFrame.p[0]-0.25*math.cos(beerAngle),beerFrame.p[1]-0.25*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
+    moveRight(beerFrame.p[0]-0.23*math.cos(beerAngle),beerFrame.p[1]-0.23*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
     grabRight()
 #powrot
     moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
@@ -280,13 +282,13 @@ if __name__ == "__main__":
     dest=findDest("table2")
 #nadgarstek nad stolik
     highFive(dest[3]+0.15)
-#ustaw sie dokładnie nad punktem zrzutu 
-    moveRight(dest[0],dest[1],dest[2]+0.05+h_stolu,dest[3]+0.15)
+#ustaw sie dokladnie nad punktem zrzutu 
+    moveRight(dest[0],dest[1],dest[2]+0.45+h_stolu,dest[3]+0.15)
 #zrzut
     releaseRight()
     
     (beer_frame,beer_angle)=locateObject("beer")
-    moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.2,beer_angle) #podnosimy reke zeby nie potracic puszki
+    moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.3,beer_angle) #podnosimy reke zeby nie potracic puszki
 #chwyc - trudniej o kolizje
     grabRight()
 #wroc do pozycji domyslnej
