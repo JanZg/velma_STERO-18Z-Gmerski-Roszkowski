@@ -82,20 +82,26 @@ def highFive(torso_angle):
 		planAndExecute(q_map_to_spin)
 
 #chwyt chwytakeiem (duh)     
-def grabRight():
+def grabRight(catching):
 	modeImp()
-        dest_q = [70.0/180.0*math.pi,70.0/180.0*math.pi,70.0/180.0*math.pi,0]
+        dest_q = [75.0/180.0*math.pi,75.0/180.0*math.pi,75.0/180.0*math.pi,0]
         print "Taking a hold"
         velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
         if velma.waitForHandRight() != 0:
             exitError(8)
         rospy.sleep(0.5)
         if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
-		print "Failure: Cannot take a hold. Returning to starting position"
-		releaseRight()
-		moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
-		planAndExecute(q_default_position)
-        	exitError(9)
+		if(catching==1):
+			print "Grabbing succesfull. Commencing movement to the drop zone"
+		else:	
+			print "Could not take a hold"
+			exitError(8)
+	else:
+		if(catching==1):
+			print "Failure to take a hold. Returning to default position"
+			releaseRight()
+			moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
+			planAndExecute(q_default_position)
 #zwolnienie chwytu
 def releaseRight():
 	modeImp()
@@ -133,7 +139,7 @@ def moveRight(x,y,z,theta):
             (beer_frame,beer_angle)=locateObject("beer")
             moveRight(beer_frame.p[0]-0.5*math.cos(theta),beer_frame.p[1]-0.5*math.sin(theta),0.5*h_puszki+beer_frame.p[2],beer_angle) #podnosimy reke zeby nie potracic puszki
 
-            grabRight()
+            grabRight(0)
             planAndExecute(q_default_position)
             
             exitError(10)
@@ -270,7 +276,7 @@ if __name__ == "__main__":
 
 
 #chwyc - trudniej o kolizje
-    grabRight()
+    grabRight(0)
 #gdzie jest piwo
     (beerFrame,beerAngle)=locateObject("beer")
 
@@ -281,7 +287,7 @@ if __name__ == "__main__":
     moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
 #podjedz pod puszke
     moveRight(beerFrame.p[0]-0.25*math.cos(beerAngle),beerFrame.p[1]-0.25*math.sin(beerAngle),0.4*h_puszki+beerFrame.p[2],beerAngle)
-    grabRight()
+    grabRight(1)
 #powrot
     moveRight(0.6*beerFrame.p[0],0.6*beerFrame.p[1],0.4*h_puszki+beerFrame.p[2],beerAngle)
     highFive(beerAngle+0.15)
@@ -297,7 +303,7 @@ if __name__ == "__main__":
     (beer_frame,beer_angle)=locateObject("beer")
     moveRight(beer_frame.p[0],beer_frame.p[1],0.5*h_puszki+beer_frame.p[2]+0.3,beer_angle) #podnosimy reke zeby nie potracic puszki
 #chwyc - trudniej o kolizje
-    grabRight()
+    grabRight(0)
 #wroc do pozycji domyslnej
     print "Assuming resting position"
     planAndExecute(q_default_position)
