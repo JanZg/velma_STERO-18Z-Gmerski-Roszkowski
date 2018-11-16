@@ -44,12 +44,27 @@ from rcprg_ros_utils import exitError
 cabinetH=0.7
 cabinetW=0.6
 cabinetD=0.3
+tableH=1
 
 def locateObject(object):
-	objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu	
+	objectFrame = velma.getTf("cabinet", object) #odebranie pozycji i orientacji obiektu	
 	objectAngle=math.atan2(objectFrame.p[1],objectFrame.p[0])
 	print "Coordinates of cabinet:", objectFrame.p[0], objectFrame.p[1], "\n"
 	return objectFrame, objectAngle
+
+def locateTouchPoint(objectFrame, objectAngle)
+    x=objectFrame.p.x()
+    y=objectFrame.p.y()
+    th=objectAngle
+    rot=PyKDL.Rotation(0,0,th)
+    cab_point=PyKDL.Vector(x/4,y/2,0)
+    cart_point=cab_point*rot
+    return cart_point
+    
+    
+     
+
+
 
 def modeImp():
     print "Switch to jnt_imp mode (no trajectory)..."
@@ -91,7 +106,7 @@ def release():
 
 def hold():
 	modeImp()
-	dest_q = [120.0/180.0*math.pi,120.0/180.0*math.pi,120.0/180.0*math.pi,180.0/180.0*math.pi]
+	dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,180.0/180.0*math.pi]
 	print "Moving right hand fingers:", dest_q
 	velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
 	if velma.waitForHandRight() != 0:
@@ -99,6 +114,16 @@ def hold():
 	rospy.sleep(0.5)
 	if not isHandConfigurationClose( velma.getHandRightCurrentConfiguration(), dest_q):
 		exitError(11)
+
+def setImp (x,y,z,xT,yT,zT):
+     print "Setting impendance"
+     imp_list = [makeWrench(1000,1000,1000,150,150,150),
+                 makeWrench((1000+x)/2,(1000+x)/2,(1000+x)/2,(150+xT)/2,(150+yT)/2,(150+zT)/2),
+                 makeWrench(x,y,z,xT,yT,zT)]
+     if not velma.moveCartImpRight(None, None, None, None, imp_list, [0.5,1.0,1.5], PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
+         exitError(16)
+     if velma.waitForEffectorRight() != 0:
+     exitError(17)
 
 def moveImp(q_map):
 	print "Moving to set position (jimp)"
@@ -124,12 +149,8 @@ def moveCart(x,y,z,theta):
 	if T_B_T_diff.vel.Norm() > 0.05 or T_B_T_diff.rot.Norm() > 0.05:
 		exitError(10)
 
- 
-if __name__ == "__main__":
- 
-	rospy.init_node('grippers_test', anonymous=False)
- 
-	rospy.sleep(1)
+def initRobot():
+     rospy.sleep(1)
  
 	velma = VelmaInterface()
 	print "waiting for init..."
@@ -149,5 +170,11 @@ if __name__ == "__main__":
  
 	if velma.enableMotors() != 0:
 		exitError(14)
+
+ 
+if __name__ == "__main__":
+ 
+     initRobot()
  	release()
+     setImp()
 
