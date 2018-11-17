@@ -160,6 +160,16 @@ def moveCart(x,y,z,theta):
 	print T_B_T_diff
 	if T_B_T_diff.vel.Norm() > 0.05 or T_B_T_diff.rot.Norm() > 0.05:
 		exitError(10)
+		
+		
+def moveMyCart(x,y,z,theta,tolerance):
+	modeCart()
+	print "Moving right wrist to position:",x,y,z,"\n"
+	T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( x , y , z ))
+	if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5,None,PyKDL.Wrench(PyKDL.Vector(0.7, 0.7, 0.7),PyKDL.Vector(0.7, 0.7, 0.7)),tolerance):
+		
+	rospy.sleep(0.5)
+
 
 def initRobot():
      rospy.sleep(1)
