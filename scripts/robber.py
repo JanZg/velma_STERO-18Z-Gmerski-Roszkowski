@@ -46,13 +46,22 @@ cabinetW=0.6
 cabinetD=0.3
 tableH=1
 
+q_default_position = {'torso_0_joint':0,
+        'right_arm_0_joint':-0.3,   'left_arm_0_joint':0.3,
+        'right_arm_1_joint':-1.8,   'left_arm_1_joint':1.8,
+        'right_arm_2_joint':1.25,   'left_arm_2_joint':-1.25,
+        'right_arm_3_joint':0.85,   'left_arm_3_joint':-0.85,
+        'right_arm_4_joint':0,      'left_arm_4_joint':0,
+        'right_arm_5_joint':-0.5,   'left_arm_5_joint':0.5,
+        'right_arm_6_joint':0,      'left_arm_6_joint':0 }
+
 def locateObject(object):
-	objectFrame = velma.getTf("cabinet", object) #odebranie pozycji i orientacji obiektu	
+	objectFrame = velma.getTf("cabinet_door", object) #odebranie pozycji i orientacji obiektu	
 	objectAngle=math.atan2(objectFrame.p[1],objectFrame.p[0])
 	print "Coordinates of cabinet:", objectFrame.p[0], objectFrame.p[1], "\n"
 	return objectFrame, objectAngle
 
-def getCabinetFrame(objectFrame, objectAngle)
+def getCabinetFrame(objectFrame, objectAngle):
     x=objectFrame.p.x()
     y=objectFrame.p.y()
     z=objectFrame.p.z()
@@ -63,22 +72,16 @@ def getCabinetFrame(objectFrame, objectAngle)
     return cab_Frame
 
 
-def cartIntoCab(positionCart,cabinetFrame)
+def cartIntoCab(positionCart,cabinetFrame):
     return cabinetFrame*positionCart
 
-def cabIntoCart(positionCab,cabinetFrame)
+def cabIntoCart(positionCab,cabinetFrame):
     cabinetFrame=cabinetFrame.inverse()
     return cabinetFrame*positionCab
     
 
 
-    
-    
-     
-
-
-
-def modeImp():
+def modeJnt():
     print "Switch to jnt_imp mode (no trajectory)..."
     velma.moveJointImpToCurrentPos(start_time=0.2)
     error = velma.waitForJoint()
@@ -106,7 +109,7 @@ def modeCart():
 	exitError(3)
 
 def release():
-	modeImp()
+	modeJnt()
 	dest_q = [0,0,0,180.0/180.0*math.pi]
 	print "Moving right hand fingers:", dest_q
 	velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
@@ -117,7 +120,7 @@ def release():
 		exitError(11)
 
 def hold():
-	modeImp()
+	modeJnt()
 	dest_q = [80.0/180.0*math.pi,80.0/180.0*math.pi,80.0/180.0*math.pi,180.0/180.0*math.pi]
 	print "Moving right hand fingers:", dest_q
 	velma.moveHandRight(dest_q, [1,1,1,1], [2000,2000,2000,2000], 1000, hold=True)
@@ -128,22 +131,20 @@ def hold():
 		exitError(11)
 
 def setImp (x,y,z,xT,yT,zT):
-     print "Setting impendance"
-     imp_list = [makeWrench(1000,1000,1000,150,150,150),
-                 makeWrench((1000+x)/2,(1000+x)/2,(1000+x)/2,(150+xT)/2,(150+yT)/2,(150+zT)/2),
-                 makeWrench(x,y,z,xT,yT,zT)]
-     if not velma.moveCartImpRight(None, None, None, None, imp_list, [0.5,1.0,1.5], PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
-         exitError(16)
-     if velma.waitForEffectorRight() != 0:
-     exitError(17)
+	modeCart()
+	print "Setting impendance"
+	if not velma.moveCartImpRight(None, None, None, None, [PyKDL.Wrench(PyKDL.Vector(x,y,z), PyKDL.Vector(xT,yT,zT))], [2], PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5))):
+		exitError(16)
+	if velma.waitForEffectorRight() != 0:
+		exitError(17)
 
-def moveImp(q_map):
+def moveJnt(q_map):
 	print "Moving to set position (jimp)"
-	velma.moveJoint(q_map_0, 5, start_time=0.5, position_tol=0, velocity_tol=0)
+	velma.moveJoint(q_map, 2, start_time=0.5, position_tol=0, velocity_tol=0)
 	error = velma.waitForJoint()
-	if error != FollowJointTrajectoryResult.PATH_TOLERANCE_VIOLATED:
-		print "The action should have ended with PATH_TOLERANCE_VIOLATED error status, but the error code is", error
-		exitError(4)
+	if error != 0:
+		print "The action should have ended without error, but the error code is", error
+		exitError(6)
 
 
 def moveCart(x,y,z,theta):
@@ -162,20 +163,24 @@ def moveCart(x,y,z,theta):
 		exitError(10)
 		
 		
-def moveMyCart(x,y,z,theta,tolerance):
+def moveMyCart(x,y,z,theta,tolerance):	#polecane 0.04 jako tolerance
 	modeCart()
 	print "Moving right wrist to position:",x,y,z,"\n"
 	T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( x , y , z ))
-	if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5,None,PyKDL.Wrench(PyKDL.Vector(0.7, 0.7, 0.7),PyKDL.Vector(0.7, 0.7, 0.7)),tolerance):
-		
-	rospy.sleep(0.5)
+	if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5, path_tol=PyKDL.Twist(PyKDL.Vector(tolerance,tolerance,tolerance), PyKDL.Vector(tolerance,tolerance,tolerance))):
+		exitError(13)
+	if velma.waitForEffectorRight() != 0:
+		print "Enemy Contact!"
+		return
+	exitError("No hostiles detected")
 
 
-def initRobot():
-     rospy.sleep(1)
  
-	velma = VelmaInterface()
-	print "waiting for init..."
+if __name__ == "__main__":
+
+	rospy.init_node('test_init', anonymous=False)
+ 
+	rospy.sleep(0.5)
  
 	print "Running python interface for Velma..."
 	velma = VelmaInterface()
@@ -185,22 +190,20 @@ def initRobot():
 		exitError(1)
 	print "Initialization ok!\n"
  
-	diag = velma.getCoreCsDiag()
-	if not diag.motorsReady():
-		print "Motors must be homed and ready to use for this test."
-		exitError(1)
- 
+	print "Motors must be enabled every time after the robot enters safe state."
+	print "If the motors are already enabled, enabling them has no effect."
+	print "Enabling motors..."
 	if velma.enableMotors() != 0:
 		exitError(14)
 
- 
-if __name__ == "__main__":
- 
-    initRobot()
-    release()
-    setImp()
-    (cabinetPosition,cabinetAngle)=locateObject('cabinet_door')
-    cabinetFrame=getCabinetFrame(cabinetPosition,cabinetAngle)
+
+moveJnt(q_default_position)
+hold()
+setImp(450,450,450,80,80,80)
+(cabinetPosition,cabinetAngle)=locateObject('cabinet_door')
+cabinetFrame=getCabinetFrame(cabinetPosition,cabinetAngle)
+nextPosition=cabIntoCart(PyKDL.Vector(-cabinetW/2,cabinetD,cabinetH/2),cabinetFrame)
+moveMyCart(nextPosition[1],nextPosition[2],nextPosition[3],cabinetAngle,0.04)
 
     
 
