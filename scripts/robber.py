@@ -72,15 +72,14 @@ def getCabinetFrame(objectFrame, objectAngle):
     return cab_Frame
 
 
-def cartIntoCab(positionCart,cabinetFrame):
+def cartToCab(positionCart,cabinetFrame):
     return cabinetFrame*positionCart
 
-def cabIntoCart(positionCab,cabinetFrame):
+def cabToCart(positionCab,cabinetFrame):
     cabinetFrame=cabinetFrame.inverse()
     return cabinetFrame*positionCab
     
-
-
+    
 def modeJnt():
     print "Switch to jnt_imp mode (no trajectory)..."
     velma.moveJointImpToCurrentPos(start_time=0.2)
@@ -139,6 +138,7 @@ def setImp (x,y,z,xT,yT,zT):
 		exitError(17)
 
 def moveJnt(q_map):
+	modeJnt()
 	print "Moving to set position (jimp)"
 	velma.moveJoint(q_map, 2, start_time=0.5, position_tol=0, velocity_tol=0)
 	error = velma.waitForJoint()
@@ -174,6 +174,11 @@ def moveMyCart(x,y,z,theta,tolerance):	#polecane 0.04 jako tolerance
 		return
 	exitError("No hostiles detected")
 
+def getTfCab():
+    position=velma.getTf("B", "Tr")	
+    position.p=cartToCab(position.p)
+    new_rot=PyKDL.Rotation
+    new_rot
 
  
 if __name__ == "__main__":
@@ -196,7 +201,6 @@ if __name__ == "__main__":
 	if velma.enableMotors() != 0:
 		exitError(14)
 
-
 moveJnt(q_default_position)
 hold()
 setImp(450,450,450,80,80,80)
@@ -205,5 +209,24 @@ cabinetFrame=getCabinetFrame(cabinetPosition,cabinetAngle)
 nextPosition=cabIntoCart(PyKDL.Vector(-cabinetW/2,cabinetD,cabinetH/2),cabinetFrame)
 moveMyCart(nextPosition[1],nextPosition[2],nextPosition[3],cabinetAngle,0.04)
 
+    # TODO: PORUSZANIE SIE DO SZAFKI, WALNIECIE SZAFKI, JAZDA ROWNOLEGLA, WALNIECIE UCHWYTU, ZAHACZENIE UCHWYTU
+
+
+starting_position=velma.getTf("B", "Tr") 
+    
+# Pierwsza faza ruchu: ciagniemy do tylu	
+dest_1=(0, cabinetD+0.2,tableH+0.5*cabinetH)
+dest_1=cabToCart(dest_1)
+moveMyCart(dest_1(0),dest_1(1),dest_1(2),cabinetAngle,0.08)
+	
+current_position=velma.getTf("B", "Tr")	
+current_angle=0
+	
+while current_angle<math.pi*90.0/180.0:
+        
+	
+	current_position=velma.getTf("B", "Tr")
+	current_vector=cartToCab(current_position.p)
+	theta=math.atan2(current_position.p.y(),current_position.p.x())
     
 
