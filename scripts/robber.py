@@ -52,14 +52,26 @@ def locateObject(object):
 	print "Coordinates of cabinet:", objectFrame.p[0], objectFrame.p[1], "\n"
 	return objectFrame, objectAngle
 
-def locateTouchPoint(objectFrame, objectAngle)
+def getCabinetFrame(objectFrame, objectAngle)
     x=objectFrame.p.x()
     y=objectFrame.p.y()
+    z=objectFrame.p.z()
     th=objectAngle
     rot=PyKDL.Rotation(0,0,th)
-    cab_point=PyKDL.Vector(x/4,y/2,0)
-    cart_point=cab_point*rot
-    return cart_point
+    vect=PyKDL.Vector(x,y,tableH+0.5*cabinetH)      # frame przeksztalcenia szafki wzgledem srodka ukladu kartezjanskiego
+    cab_Frame=(rot,vect)
+    return cab_Frame
+
+
+def cartIntoCab(positionCart,cabinetFrame)
+    return cabinetFrame*positionCart
+
+def cabIntoCart(positionCab,cabinetFrame)
+    cabinetFrame=cabinetFrame.inverse()
+    return cabinetFrame*positionCab
+    
+
+
     
     
      
@@ -174,7 +186,11 @@ def initRobot():
  
 if __name__ == "__main__":
  
-     initRobot()
- 	release()
-     setImp()
+    initRobot()
+    release()
+    setImp()
+    (cabinetPosition,cabinetAngle)=locateObject('cabinet_door')
+    cabinetFrame=getCabinetFrame(cabinetPosition,cabinetAngle)
+
+    
 
