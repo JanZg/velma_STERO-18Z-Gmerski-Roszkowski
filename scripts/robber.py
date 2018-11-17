@@ -56,27 +56,16 @@ q_default_position = {'torso_0_joint':0,
         'right_arm_6_joint':0,      'left_arm_6_joint':0 }
 
 def locateObject(object):
-	objectFrame = velma.getTf("cabinet_door", object) #odebranie pozycji i orientacji obiektu	
+	objectFrame = velma.getTf("B", object) #odebranie pozycji i orientacji obiektu	
 	objectAngle=math.atan2(objectFrame.p[1],objectFrame.p[0])
-	print "Coordinates of cabinet:", objectFrame.p[0], objectFrame.p[1], "\n"
+	print "Coordinates of cabinet:", objectFrame.p[0], objectFrame.p[1], objectFrame.p[2], "\n"
 	return objectFrame, objectAngle
-
-def getCabinetFrame(objectFrame, objectAngle):
-    x=objectFrame.p.x()
-    y=objectFrame.p.y()
-    z=objectFrame.p.z()
-    th=objectAngle
-    rot=PyKDL.Rotation(0,0,th)
-    vect=PyKDL.Vector(x,y,tableH+0.5*cabinetH)      # frame przeksztalcenia szafki wzgledem srodka ukladu kartezjanskiego
-    cab_Frame=(rot,vect)
-    return cab_Frame
-
 
 def cartToCab(positionCart,cabinetFrame):
     return cabinetFrame*positionCart
 
 def cabToCart(positionCab,cabinetFrame):
-    cabinetFrame=cabinetFrame.inverse()
+    cabinetFrame=cabinetFrame.Inverse()
     return cabinetFrame*positionCab
     
     
@@ -200,14 +189,34 @@ if __name__ == "__main__":
 	print "Enabling motors..."
 	if velma.enableMotors() != 0:
 		exitError(14)
-
+ 
+	print "Also, head motors must be homed after start-up of the robot."
+	print "Sending head pan motor START_HOMING command..."
+	velma.startHomingHP()
+	if velma.waitForHP() != 0:
+		exitError(14)
+	print "Head pan motor homing successful."
+ 
+	print "Sending head tilt motor START_HOMING command..."
+	velma.startHomingHT()
+	if velma.waitForHT() != 0:
+		exitError(15)
+	print "Head tilt motor homing successful.\n"
+ 
+setImp(1000,1000,1000,150,150,150)
 moveJnt(q_default_position)
 hold()
+
+(cabinetFrame,cabinetVelmaAngle)=locateObject('cabinet_door')
+(useless, who_cares, cabinetAngle)=cabinetFrame.M.GetRPY()
+cabinetAngle=cabinetAngle-math.pi
+
+nextPosition=cabToCart(PyKDL.Vector(cabinetD,cabinetW/4,0),cabinetFrame)	#zblizamy swoja osobe
+moveCart(nextPosition[0],nextPosition[1],nextPosition[2],cabinetAngle)
 setImp(450,450,450,80,80,80)
-(cabinetPosition,cabinetAngle)=locateObject('cabinet_door')
-cabinetFrame=getCabinetFrame(cabinetPosition,cabinetAngle)
-nextPosition=cabIntoCart(PyKDL.Vector(-cabinetW/2,cabinetD,cabinetH/2),cabinetFrame)
-moveMyCart(nextPosition[1],nextPosition[2],nextPosition[3],cabinetAngle,0.04)
+
+nextPosition=cabToCart(PyKDL.Vector(cabinetD/2,cabinetW/4,0),cabinetFrame)	#CHARGE FORWARD
+moveMyCart(nextPosition[0],nextPosition[1],nextPosition[2],cabinetAngle,0.04)
 
     # TODO: PORUSZANIE SIE DO SZAFKI, WALNIECIE SZAFKI, JAZDA ROWNOLEGLA, WALNIECIE UCHWYTU, ZAHACZENIE UCHWYTU
 
