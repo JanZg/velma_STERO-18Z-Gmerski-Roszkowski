@@ -172,69 +172,69 @@ def getTfCab():
  
 if __name__ == "__main__":
 
-	rospy.init_node('test_init', anonymous=False)
+    rospy.init_node('test_init', anonymous=False)
  
-	rospy.sleep(0.5)
+    rospy.sleep(0.5)
  
-	print "Running python interface for Velma..."
-	velma = VelmaInterface()
-	print "Waiting for VelmaInterface initialization..."
-	if not velma.waitForInit(timeout_s=10.0):
-		print "Could not initialize VelmaInterface\n"
-		exitError(1)
-	print "Initialization ok!\n"
+    print "Running python interface for Velma..."
+    velma = VelmaInterface()
+    print "Waiting for VelmaInterface initialization..."
+    if not velma.waitForInit(timeout_s=10.0):
+	print "Could not initialize VelmaInterface\n"
+	exitError(1)
+    print "Initialization ok!\n"
  
-	print "Motors must be enabled every time after the robot enters safe state."
-	print "If the motors are already enabled, enabling them has no effect."
-	print "Enabling motors..."
-	if velma.enableMotors() != 0:
-		exitError(14)
+    print "Motors must be enabled every time after the robot enters safe state."
+    print "If the motors are already enabled, enabling them has no effect."
+    print "Enabling motors..."
+    if velma.enableMotors() != 0:
+        exitError(14)
  
-	print "Also, head motors must be homed after start-up of the robot."
-	print "Sending head pan motor START_HOMING command..."
-	velma.startHomingHP()
-	if velma.waitForHP() != 0:
-		exitError(14)
-	print "Head pan motor homing successful."
+    print "Also, head motors must be homed after start-up of the robot."
+    print "Sending head pan motor START_HOMING command..."
+    velma.startHomingHP()
+    if velma.waitForHP() != 0:
+	exitError(14)
+    print "Head pan motor homing successful."
  
-	print "Sending head tilt motor START_HOMING command..."
-	velma.startHomingHT()
-	if velma.waitForHT() != 0:
-		exitError(15)
-	print "Head tilt motor homing successful.\n"
+    print "Sending head tilt motor START_HOMING command..."
+    velma.startHomingHT()
+    if velma.waitForHT() != 0:
+	exitError(15)
+    print "Head tilt motor homing successful.\n"
  
-setImp(1000,1000,1000,150,150,150)
-moveJnt(q_default_position)
-hold()
+    setImp(1000,1000,1000,150,150,150)
+    moveJnt(q_default_position)
+    hold()
 
-(cabinetFrame,cabinetVelmaAngle)=locateObject('cabinet_door')
-(useless, who_cares, cabinetAngle)=cabinetFrame.M.GetRPY()
-cabinetAngle=cabinetAngle-math.pi
+    (cabinetFrame,cabinetVelmaAngle)=locateObject('cabinet_door')
+    (useless, who_cares, cabinetAngle)=cabinetFrame.M.GetRPY()
+    cabinetAngle=cabinetAngle-math.pi
 
-nextPosition=cabToCart(PyKDL.Vector(cabinetD,cabinetW/4,0),cabinetFrame)	#zblizamy swoja osobe
-moveCart(nextPosition[0],nextPosition[1],nextPosition[2],cabinetAngle)
-setImp(450,450,450,80,80,80)
+    nextPosition=cabToCart(PyKDL.Vector(cabinetD,cabinetW/4,0),cabinetFrame)	#zblizamy swoja osobe
+    moveCart(nextPosition[0],nextPosition[1],nextPosition[2],cabinetAngle)
+    setImp(450,450,450,80,80,80)
 
-nextPosition=cabToCart(PyKDL.Vector(cabinetD/2,cabinetW/4,0),cabinetFrame)	#CHARGE FORWARD
-moveMyCart(nextPosition[0],nextPosition[1],nextPosition[2],cabinetAngle,0.04)
+    nextPosition=cabToCart(PyKDL.Vector(cabinetD/2,cabinetW/4,0),cabinetFrame)	#CHARGE FORWARD
+    moveMyCart(nextPosition[0],nextPosition[1],nextPosition[2],cabinetAngle,0.04)
 
     # TODO: PORUSZANIE SIE DO SZAFKI, WALNIECIE SZAFKI, JAZDA ROWNOLEGLA, WALNIECIE UCHWYTU, ZAHACZENIE UCHWYTU
 
 
-starting_position=velma.getTf("B", "Tr") 
+    starting_position=velma.getTf("B", "Tr") 
     
 # Pierwsza faza ruchu: ciagniemy do tylu	
-dest_1=(0, cabinetD+0.2,tableH+0.5*cabinetH)
-dest_1=cabToCart(dest_1)
-moveMyCart(dest_1(0),dest_1(1),dest_1(2),cabinetAngle,0.08)
+    dest_1=(0, cabinetD+0.2,tableH+0.5*cabinetH)
+    dest_1=cabToCart(dest_1)
+    moveMyCart(dest_1(0),dest_1(1),dest_1(2),cabinetAngle,0.08)
 	
-current_position=velma.getTf("B", "Tr")	
-current_angle=0
+    current_position=velma.getTf("B", "Tr")	
+    current_angle=0
 	
-while current_angle<math.pi*90.0/180.0:
+    while current_angle<math.pi*90.0/180.0:
         
 	
-	current_position=velma.getTf("B", "Tr")
+        current_position=velma.getTf("B", "Tr")
 	current_vector=cartToCab(current_position.p)
 	theta=math.atan2(current_position.p.y(),current_position.p.x())
     
