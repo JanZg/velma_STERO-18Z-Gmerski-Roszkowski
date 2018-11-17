@@ -52,7 +52,7 @@ def locateObject(object):
 	print "Coordinates of cabinet:", objectFrame.p[0], objectFrame.p[1], "\n"
 	return objectFrame, objectAngle
 
-def getCabinetFrame(objectFrame, objectAngle)
+def getCabinetFrame(objectFrame, objectAngle):
     x=objectFrame.p.x()
     y=objectFrame.p.y()
     z=objectFrame.p.z()
@@ -63,15 +63,16 @@ def getCabinetFrame(objectFrame, objectAngle)
     return cab_Frame
 
 
-def cartIntoCab(positionCart,cabinetFrame)
+def cartToCab(positionCart,cabinetFrame):
     return cabinetFrame*positionCart
 
-def cabIntoCart(positionCab,cabinetFrame)
+def cabToCart(positionCab,cabinetFrame):
     cabinetFrame=cabinetFrame.inverse()
     return cabinetFrame*positionCab
     
 
-
+def estimateTrajectory(starting_position)
+    
     
     
      
@@ -166,7 +167,7 @@ def moveMyCart(x,y,z,theta,tolerance):
 	modeCart()
 	print "Moving right wrist to position:",x,y,z,"\n"
 	T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( x , y , z ))
-	if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5,None,PyKDL.Wrench(PyKDL.Vector(0.7, 0.7, 0.7),PyKDL.Vector(0.7, 0.7, 0.7)),tolerance):
+	if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5,stamp=None, damping=PyKDL.Wrench(PyKDL.Vector(0.7, 0.7, 0.7),PyKDL.Vector(0.7, 0.7, 0.7)),path_tol=tolerance):
 		
 	rospy.sleep(0.5)
 
@@ -193,6 +194,12 @@ def initRobot():
 	if velma.enableMotors() != 0:
 		exitError(14)
 
+def getTfCab():
+    position=velma.getTf("B", "Tr")	
+    position.p=cartToCab(position.p)
+    new_rot=PyKDL.Rotation
+    new_rot
+	
  
 if __name__ == "__main__":
  
@@ -201,6 +208,27 @@ if __name__ == "__main__":
     setImp()
     (cabinetPosition,cabinetAngle)=locateObject('cabinet_door')
     cabinetFrame=getCabinetFrame(cabinetPosition,cabinetAngle)
+    # TODO: PORUSZANIE SIE DO SZAFKI, WALNIECIE SZAFKI, JAZDA ROWNOLEGLA, WALNIECIE UCHWYTU, ZAHACZENIE UCHWYTU
 
+
+
+    starting_position=velma.getTf("B", "Tr")
+    
+    
+# Pierwsza faza ruchu: ciagniemy do tylu	
+    dest_1=(0, cabinetD+0.2,tableH=0.5*cabinetH)
+    dest_1=cabToCart(dest_1)
+    moveMyCart(dest_1(0),dest_1(1),dest_1(2),cabinetAngle,0.08)
+	
+    current_position=velma.getTf("B", "Tr")	
+    current_angle=0
+	
+    while current_angle<math.pi*90.0/180.0:
+        
+	
+	current_position=velma.getTf("B", "Tr")
+	current_vector=cartToCab(current_position.p)
+	theta=math.atan2(current_position.p.y(),current_position.p.x())
+	current_angle=
     
 
