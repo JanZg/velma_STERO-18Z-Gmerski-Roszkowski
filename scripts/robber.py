@@ -47,10 +47,10 @@ cabinetD=0.3
 tableH=1
 
 def locateObject(object):
-	objectFrame = velma.getTf("cabinet", object) #odebranie pozycji i orientacji obiektu	
-	objectAngle=math.atan2(objectFrame.p[1],objectFrame.p[0])
-	print "Coordinates of cabinet:", objectFrame.p[0], objectFrame.p[1], "\n"
-	return objectFrame, objectAngle
+	return objectFrame = velma.getTf("cabinet", object) #odebranie pozycji i orientacji obiektu	
+#	objectAngle=math.atan2(objectFrame.p[1],objectFrame.p[0])
+#	print "Coordinates of cabinet:", objectFrame.p[0], objectFrame.p[1], "\n"
+#	return objectFrame, objectAngle
 
 def getCabinetFrame(objectFrame, objectAngle)
     x=objectFrame.p.x()
