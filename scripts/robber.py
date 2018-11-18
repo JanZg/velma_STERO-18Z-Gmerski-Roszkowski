@@ -64,9 +64,16 @@ def locateObject(object):
 def cartToCab(positionCart,cabinetFrame):
     return cabinetFrame*positionCart
 
+def cartToCabFrame(frameCart,cabinetFrame):
+    return cabinetFrame*frameCart
+
 def cabToCart(positionCab,cabinetFrame):
     cabinetFrame=cabinetFrame.Inverse()
     return cabinetFrame*positionCab
+
+def cabToCartFrame(frameCab,cabinetFrame):
+    cabinetFrame=cabinetFrame.Inverse()
+    return cabinetFrame*frameCab
     
     
 def modeJnt():
@@ -163,11 +170,10 @@ def moveMyCart(x,y,z,theta,tolerance):	#polecane 0.04 jako tolerance
 		return
 	exitError("No hostiles detected")
 
-def getTfCab():
+def getCurrentTfCab(cabinetFrame):                        #pobieranie obecnej pozycji we wspolrzednych szafki
     position=velma.getTf("B", "Tr")	
-    position.p=cartToCab(position.p)
-    new_rot=PyKDL.Rotation
-    new_rot
+    position=cabinetFrame*position
+    return position
 
  
 if __name__ == "__main__":
@@ -221,21 +227,25 @@ if __name__ == "__main__":
     # TODO: PORUSZANIE SIE DO SZAFKI, WALNIECIE SZAFKI, JAZDA ROWNOLEGLA, WALNIECIE UCHWYTU, ZAHACZENIE UCHWYTU
 
 
+	
+	
     starting_position=velma.getTf("B", "Tr") 
     
-# Pierwsza faza ruchu: ciagniemy do tylu	
+# Pierwsza faza ruchu: ciagniemy do tylu
+    starting_position=velma.getTf("B", "Tr") 
     dest_1=(0, cabinetD+0.2,tableH+0.5*cabinetH)
     dest_1=cabToCart(dest_1)
     moveMyCart(dest_1(0),dest_1(1),dest_1(2),cabinetAngle,0.08)
 	
     current_position=velma.getTf("B", "Tr")	
-    current_angle=0
+    cabinetDoorAngle=0
 	
-    while current_angle<math.pi*90.0/180.0:
+    while cabinetDoorAngle<math.pi*90.0/180.0:
         
 	
-        current_position=velma.getTf("B", "Tr")
-	current_vector=cartToCab(current_position.p)
-	theta=math.atan2(current_position.p.y(),current_position.p.x())
+        
+	current_position=getCurrentTfCab(cabinetFrame)
+	(a,b,current_angle)=current_position.M.GetRPY()
+	cabinetDoorAngle=math.pi-current_angle
     
 
