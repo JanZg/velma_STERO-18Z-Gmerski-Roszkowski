@@ -260,26 +260,40 @@ if __name__ == "__main__":
     dest_1=(0, 0.5*cabinetD+0.2,h)
     dest_1=cabToCart(dest_1,cabinetFrame)
     	
-    moveMyCart(dest_1(0),dest_1(1),h,cabinetAngle,0.04)
+    moveMyCart(dest_1[0],dest_1[1],h,cabinetAngle,0.04)
 	
     pos_1=getCurrentTfCab(cabinetFrame)
     
-    dest_2=(pos_1.p.x(),pos_2.p.y()+0.2,h)
+    dest_2=PyKDL.Vector(pos_1.p.x(),pos_2.p.y()+0.2,h)
     dest_2=cabToCart(dest_2,cabinetFrame)
     
-    moveMyCart(dest_2(0),dest_2(1),dest_2(2),cabinetAngle,0.04)
+    moveMyCart(dest_2[0],dest_2[1],dest_2[2],cabinetAngle,0.04)
 	
     pos0=getCurrentTfCab(cabinetFrame)
 
     cabinetDoorAngle=0
+    
+# Druga faza ruchu: ciagniemy po torze
 	
     while cabinetDoorAngle<math.pi*90.0/180.0:
         
-	    current_position=getCurrentTfCab(cabinetFrame)
+        
+
+        
+        x0,y0,r,angle=estimateCircle(pos_2.p.x(),pos_2.p.y(),pos_1.p.x(),pos_1.p.y(),pos_0.p.x(),pos_0.p.y()),pos0)
+        x,y=estimateSetPoint(x0,y0,r,pos_0)
+        
+        dest=PyKDL.Vector(x,y,h)
+        dest=cabToCart(dest,cabinetFrame)
+       
+        moveMyCart(dest[0],dest[1],dest[2],cabinetAngle+angle,tolerance=None)
+        
+        #estymacja na podstawie trzech ostatnich punktow
+        pos_2=pos_1
+        pos_1=pos_0
+        pos_0=getCurrentTfCab(cabinetFrame)
 	    (a,b,current_angle)=current_position.M.GetRPY()
 	    cabinetDoorAngle=math.pi-current_angle
-        moveMyCart(estimateSetPoint(estimateCircle(pos_2.p.x(),pos_2.p.y(),pos_1.p.x(),pos_1.p.y(),pos_0.p.x(),pos_0.p.y()),pos0),z,theta,tolerance=None)
-        
 
     
 
