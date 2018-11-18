@@ -74,6 +74,24 @@ def cabToCart(positionCab,cabinetFrame):
 def cabToCartFrame(frameCab,cabinetFrame):
     cabinetFrame=cabinetFrame.Inverse()
     return cabinetFrame*frameCab
+
+def estimateCircle(p,t,q,u,s,z) # x1,y1,x2,y2,x3,y3										    
+    x, y, z = complex(p,t),complex(q,u),complex(s,z)
+    w = z-x
+    w /= y-x
+    c = (x-y)*(w-abs(w)**2)/2j/w.imag-x	
+    x0,y0,r=c.real,c.imag,abs(c+x)												    
+    return x0,y0,r      
+												    
+def estimateSetPoint(x0,y0,r,current_position) #pracujemy na parametrycznej postaci okregu x=r*cos(alfa)+x0, y=r*sin(alfa)+y0
+    x=current_position.p.x()
+    y=current_position.p.y()
+    alfa=acos((x-x0)/r)                        #liczymy obecna wartosc parametru alfa
+    alfa=alfa+math.pi*1.0/180.0
+    x=r*cos(alfa)+x0
+    y=r*sin(alfa)+y0
+    return x,y,alfa-math.pi*90.0/180.0
+    												    
     
     
 def modeJnt():
@@ -208,6 +226,9 @@ if __name__ == "__main__":
     if velma.waitForHT() != 0:
 	exitError(15)
     print "Head tilt motor homing successful.\n"
+    
+    #ruch w jednej plaszczyznie ustawiamy stale z
+    h=tableH+0.5*cabinetH
  
     setImp(1000,1000,1000,150,150,150)
     moveJnt(q_default_position)
@@ -229,23 +250,36 @@ if __name__ == "__main__":
 
 	
 	
-    starting_position=velma.getTf("B", "Tr") 
+   
     
 # Pierwsza faza ruchu: ciagniemy do tylu
-    starting_position=velma.getTf("B", "Tr") 
-    dest_1=(0, cabinetD+0.2,tableH+0.5*cabinetH)
-    dest_1=cabToCart(dest_1)
-    moveMyCart(dest_1(0),dest_1(1),dest_1(2),cabinetAngle,0.08)
+    starting_position=getCurrentTfCab(cabinetFrame) 
 	
-    current_position=velma.getTf("B", "Tr")	
+    pos_2=starting_position	
+    
+    dest_1=(0, 0.5*cabinetD+0.2,h)
+    dest_1=cabToCart(dest_1,cabinetFrame)
+    	
+    moveMyCart(dest_1(0),dest_1(1),h,cabinetAngle,0.04)
+	
+    pos_1=getCurrentTfCab(cabinetFrame)
+    
+    dest_2=(pos_1.p.x(),pos_2.p.y()+0.2,h)
+    dest_2=cabToCart(dest_2,cabinetFrame)
+    
+    moveMyCart(dest_2(0),dest_2(1),dest_2(2),cabinetAngle,0.04)
+	
+    pos0=getCurrentTfCab(cabinetFrame)
+
     cabinetDoorAngle=0
 	
     while cabinetDoorAngle<math.pi*90.0/180.0:
         
-	
+	    current_position=getCurrentTfCab(cabinetFrame)
+	    (a,b,current_angle)=current_position.M.GetRPY()
+	    cabinetDoorAngle=math.pi-current_angle
+        moveMyCart(estimateSetPoint(estimateCircle(pos_2.p.x(),pos_2.p.y(),pos_1.p.x(),pos_1.p.y(),pos_0.p.x(),pos_0.p.y()),pos0),z,theta,tolerance=None)
         
-	current_position=getCurrentTfCab(cabinetFrame)
-	(a,b,current_angle)=current_position.M.GetRPY()
-	cabinetDoorAngle=math.pi-current_angle
+
     
 
