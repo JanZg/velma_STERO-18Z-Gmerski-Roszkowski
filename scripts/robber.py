@@ -75,7 +75,7 @@ def cabToCartFrame(frameCab,cabinetFrame):
     cabinetFrame=cabinetFrame.Inverse()
     return cabinetFrame*frameCab
 
-def estimateCircle(p,t,q,u,s,z) # x1,y1,x2,y2,x3,y3										    
+def estimateCircle(p,t,q,u,s,z): # x1,y1,x2,y2,x3,y3										    
     x, y, z = complex(p,t),complex(q,u),complex(s,z)
     w = z-x
     w /= y-x
@@ -83,7 +83,7 @@ def estimateCircle(p,t,q,u,s,z) # x1,y1,x2,y2,x3,y3
     x0,y0,r=c.real,c.imag,abs(c+x)												    
     return x0,y0,r      
 												    
-def estimateSetPoint(x0,y0,r,current_position) #pracujemy na parametrycznej postaci okregu x=r*cos(alfa)+x0, y=r*sin(alfa)+y0
+def estimateSetPoint(x0,y0,r,current_position): #pracujemy na parametrycznej postaci okregu x=r*cos(alfa)+x0, y=r*sin(alfa)+y0
     x=current_position.p.x()
     y=current_position.p.y()
     alfa=acos((x-x0)/r)                        #liczymy obecna wartosc parametru alfa
@@ -99,8 +99,8 @@ def modeJnt():
     velma.moveJointImpToCurrentPos(start_time=0.2)
     error = velma.waitForJoint()
     if error != 0:
-	print "The action should have ended without error, but the error code is", error
-	exitError(3)
+	    print "The action should have ended without error, but the error code is", error
+	    exitError(3)
  
     rospy.sleep(0.5)
     diag = velma.getCoreCsDiag()
@@ -112,14 +112,14 @@ def modeJnt():
 def modeCart():
     print "Switch to cart_imp mode (no trajectory)..."
     if not velma.moveCartImpRightCurrentPos(start_time=0.2):
-	exitError(8)
+	    exitError(8)
     if velma.waitForEffectorRight() != 0:
-	exitError(9)
+	    exitError(9)
     rospy.sleep(0.5)
     diag = velma.getCoreCsDiag()
     if not diag.inStateCartImp():
-	print "The core_cs should be in cart_imp state, but it is not"
-	exitError(3)
+	    print "The core_cs should be in cart_imp state, but it is not"
+	    exitError(3)
 
 def release():
 	modeJnt()
@@ -154,7 +154,7 @@ def setImp (x,y,z,xT,yT,zT):
 def moveJnt(q_map):
 	modeJnt()
 	print "Moving to set position (jimp)"
-	velma.moveJoint(q_map, 2, start_time=0.5, position_tol=0, velocity_tol=0)
+	velma.moveJoint(q_map, 1, start_time=0.5, position_tol=0, velocity_tol=0)
 	error = velma.waitForJoint()
 	if error != 0:
 		print "The action should have ended without error, but the error code is", error
@@ -165,7 +165,7 @@ def moveCart(x,y,z,theta):
 	modeCart()
 	print "Moving right wrist to position:",x,y,z,"\n"
 	T_B_Trd = PyKDL.Frame(PyKDL.Rotation.RPY( 0.0 , 0.0 , theta), PyKDL.Vector( x , y , z ))
-	if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
+	if not velma.moveCartImpRight([T_B_Trd], [2.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5):
 		exitError(8)
 	if velma.waitForEffectorRight() != 0:
 		exitError(9)
@@ -184,13 +184,13 @@ def moveMyCart(x,y,z,theta,tolerance):	#polecane 0.04 jako tolerance
 	if not velma.moveCartImpRight([T_B_Trd], [3.0], None, None, None, None, PyKDL.Wrench(PyKDL.Vector(5,5,5), PyKDL.Vector(5,5,5)), start_time=0.5, path_tol=PyKDL.Twist(PyKDL.Vector(tolerance,tolerance,tolerance), PyKDL.Vector(tolerance,tolerance,tolerance))):
 		exitError(13)
 	if velma.waitForEffectorRight() != 0:
-		print "Enemy Contact!"
-		return
-	exitError("No hostiles detected")
+		return 1
+	return 0
 
 def getCurrentTfCab(cabinetFrame):                        #pobieranie obecnej pozycji we wspolrzednych szafki
     position=velma.getTf("B", "Tr")	
     position=cabinetFrame*position
+    print "Current position (cabinet POV): ",position.p[0],position.p[1]
     return position
 
  
@@ -228,26 +228,58 @@ if __name__ == "__main__":
     print "Head tilt motor homing successful.\n"
     
     #ruch w jednej plaszczyznie ustawiamy stale z
-    h=tableH+0.5*cabinetH
+    h=tableH+0.5*cabinetH+0.15		#srodek z jakiegos powodu nie jest na srodku (no i chwytak jest nizej od koncowki)
  
-    setImp(1000,1000,1000,150,150,150)
+	#pozycja startowa
     moveJnt(q_default_position)
     hold()
 
+	#gdzie jest cabinet
     (cabinetFrame,cabinetVelmaAngle)=locateObject('cabinet_door')
     (useless, who_cares, cabinetAngle)=cabinetFrame.M.GetRPY()
-    cabinetAngle=cabinetAngle-math.pi
 
-    nextPosition=cabToCart(PyKDL.Vector(cabinetD,cabinetW/4,0),cabinetFrame)	#zblizamy swoja osobe
-    moveCart(nextPosition[0],nextPosition[1],nextPosition[2],cabinetAngle)
-    setImp(450,450,450,80,80,80)
+    cabinetAngle=cabinetAngle+math.pi
+    if(cabinetAngle>math.pi):
+        cabinetAngle=math.pi-cabinetAngle
+    print "cabinetAngle: ", cabinetAngle
 
-    nextPosition=cabToCart(PyKDL.Vector(cabinetD/2,cabinetW/4,0),cabinetFrame)	#CHARGE FORWARD
-    moveMyCart(nextPosition[0],nextPosition[1],nextPosition[2],cabinetAngle,0.04)
+	#ruszamy
+    position=cabToCart(PyKDL.Vector(cabinetD/2+0.2,cabinetW/4,0),cabinetFrame)	
+    moveCart(position[0]/2, position[1],h-0.2,cabinetAngle)		#podniesienie reki na dwa razy by velma sie nie zabila ruszajac reka w gore
+    moveCart(position[0]/2, position[1],h,cabinetAngle)
+    setImp(500,1000,1000,150,150,150)
 
-    # TODO: PORUSZANIE SIE DO SZAFKI, WALNIECIE SZAFKI, JAZDA ROWNOLEGLA, WALNIECIE UCHWYTU, ZAHACZENIE UCHWYTU
+	#kurs kolizyjny
+    if not moveMyCart(position[0],position[1],h,cabinetAngle,0.04):	#CHARGE FORWARD
+        print "Expected contact, but there isn't one :( Returning"
+        moveCart(position[0]/2, position[1],h-0.2,cabinetAngle)
+        moveJnt(q_default_position)
+        print "Shutting down"
+        exitError(1)
 
+    print "Enemy Contact! Succesfull engagement (not romantical one tho) \n"
 
+    position=getCurrentTfCab(cabinetFrame)			#uderzenie potwierdzone, sprawdzamy gdzie
+    position.p[0]=position.p[0]+0.02
+    position=cabToCart(PyKDL.Vector(position.p[0],position.p[1],0),cabinetFrame)	#odpuszczamy
+    moveCart(position[0],position[1],h,cabinetAngle)
+
+	#do chwytaka
+    setImp(1000,500,1000,150,150,150)
+    position=getCurrentTfCab(cabinetFrame)
+    position.p[1]=position.p[1]-cabinetW/2+0.05
+    position=cabToCart(PyKDL.Vector(position.p[0],position.p[1],0),cabinetFrame)	#w lewo az zlapiem uchwyta
+    if not moveMyCart(position[0],position[1],h,cabinetAngle,0.04):
+        print "Expected contact, but there isn't one :( Returning"
+        moveCart(position[0]/2, position[1],h-0.2,cabinetAngle)
+        moveJnt(q_default_position)
+        print "Shutting down"
+        exitError(1)
+
+    print "Hah, caught one! \n"
+
+    print "Aborting, rest of this thing is truly unfinished"
+    exitError("TODO")
 	
 	
    
@@ -280,7 +312,7 @@ if __name__ == "__main__":
         
 
         
-        x0,y0,r,angle=estimateCircle(pos_2.p.x(),pos_2.p.y(),pos_1.p.x(),pos_1.p.y(),pos_0.p.x(),pos_0.p.y()),pos0)
+        x0,y0,r,angle=estimateCircle(pos_2.p.x(),pos_2.p.y(),pos_1.p.x(),pos_1.p.y(),pos_0.p.x(),pos_0.p.y())
         x,y=estimateSetPoint(x0,y0,r,pos_0)
         
         dest=PyKDL.Vector(x,y,h)
@@ -292,8 +324,8 @@ if __name__ == "__main__":
         pos_2=pos_1
         pos_1=pos_0
         pos_0=getCurrentTfCab(cabinetFrame)
-	    (a,b,current_angle)=current_position.M.GetRPY()
-	    cabinetDoorAngle=math.pi-current_angle
+        (a,b,current_angle)=current_position.M.GetRPY()
+        cabinetDoorAngle=math.pi-current_angle
 
     
 
